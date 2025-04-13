@@ -11,8 +11,11 @@ public interface OrderService {
 
     Optional<Order> getOrderById(UUID orderId);
 
-    boolean placeOrder(UUID orderId);
+    boolean checkOffer(UUID orderId);
+
     boolean applyOffer(UUID orderId);
+    boolean removeOffer(UUID orderId);
+    boolean placeOrder(UUID orderId);
     boolean makePayment(UUID orderId, boolean paymentSuccessful);
     boolean shipOrder(UUID orderId);
     boolean deliverOrder(UUID orderId);

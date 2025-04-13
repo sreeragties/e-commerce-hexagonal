@@ -59,6 +59,40 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(orderId);
     }
 
+    @Override
+    public boolean checkOffer(UUID orderId) {
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+        sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        saveState(stateMachine, order);
+        return stateMachine.getState().getId() == OrderState.OFFER_APPLIED;
+    }
+
+
+    @Transactional
+    @Override
+    public boolean applyOffer(UUID orderId) {
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+        sendEvent(stateMachine, OrderEvent.APPLY_OFFER);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        saveState(stateMachine, order);
+        return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
+    }
+
+    @Transactional
+    @Override
+    public boolean removeOffer(UUID orderId) {
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+        sendEvent(stateMachine, OrderEvent.CANCEL_OFFER);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        saveState(stateMachine, order);
+        return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
+    }
+
     @Transactional
     @Override
     public boolean placeOrder(UUID orderId) {
@@ -70,16 +104,6 @@ public class OrderServiceImpl implements OrderService {
         return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
     }
 
-    @Transactional
-    @Override
-    public boolean applyOffer(UUID orderId) {
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
-        sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
-    }
 
     @Transactional
     @Override

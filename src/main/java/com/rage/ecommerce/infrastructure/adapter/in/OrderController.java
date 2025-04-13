@@ -24,6 +24,24 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/orders/{orderId}/check-offer")
+    public ResponseEntity<String> checkOffer(@PathVariable UUID orderId) {
+        if (orderService.checkOffer(orderId)) {
+            return ResponseEntity.ok("Order created successfully, now in PAYMENT_PENDING state.");
+        } else {
+            return ResponseEntity.badRequest().body("Failed to place order.");
+        }
+    }
+
+    @PostMapping("/orders/{orderId}/apply-offer")
+    public ResponseEntity<String> applyOffer(@PathVariable UUID orderId) {
+        if (orderService.applyOffer(orderId)) {
+            return ResponseEntity.ok("Offer applied successfully, now in PAYMENT_PENDING state.");
+        } else {
+            return ResponseEntity.badRequest().body("Failed to apply offer.");
+        }
+    }
+
     @PostMapping("/orders/{orderId}/place")
     public ResponseEntity<String> placeOrder(@PathVariable UUID orderId) {
         if (orderService.placeOrder(orderId)) {
