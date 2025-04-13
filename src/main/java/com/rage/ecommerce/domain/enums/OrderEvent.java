@@ -4,6 +4,8 @@ public enum OrderEvent {
 
     PLACE_ORDER,
     CHECK_OFFER,
+    APPLY_OFFER,
+    CANCEL_OFFER,
     MAKE_PAYMENT,
     PAYMENT_SUCCESS,
     PAYMENT_FAILED,

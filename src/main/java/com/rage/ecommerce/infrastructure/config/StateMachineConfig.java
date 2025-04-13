@@ -28,8 +28,8 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<OrderState
                 // From CREATED state
                 .withExternal()
                 .source(OrderState.CREATED)
-                .target(OrderState.PAYMENT_PENDING)
-                .event(OrderEvent.PLACE_ORDER)
+                .target(OrderState.OFFER_CHECKING)
+                .event(OrderEvent.CHECK_OFFER)
                 .and()
                 .withExternal()
                 .source(OrderState.CREATED)
@@ -37,16 +37,28 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<OrderState
                 .event(OrderEvent.CANCEL_ORDER)
                 .and()
 
+                // From OFFER_CHECKED state
+                .withExternal()
+                .source(OrderState.OFFER_CHECKING)
+                .target(OrderState.OFFER_APPLIED)
+                .event(OrderEvent.CHECK_OFFER)
+                .and()
+                .withExternal()
+                .source(OrderState.OFFER_CHECKING)
+                .target(OrderState.PAYMENT_PENDING)
+                .event(OrderEvent.CANCEL_OFFER)
+                .and()
+
                 // From OFFER_APPLIED state
                 .withExternal()
                 .source(OrderState.OFFER_APPLIED)
                 .target(OrderState.PAYMENT_PENDING)
-                .event(OrderEvent.CHECK_OFFER)
+                .event(OrderEvent.APPLY_OFFER)
                 .and()
                 .withExternal()
                 .source(OrderState.OFFER_APPLIED)
-                .target(OrderState.CANCELLED)
-                .event(OrderEvent.CANCEL_ORDER)
+                .target(OrderState.PAYMENT_PENDING)
+                .event(OrderEvent.CANCEL_OFFER)
                 .and()
 
                 // From PAYMENT_PENDING state
