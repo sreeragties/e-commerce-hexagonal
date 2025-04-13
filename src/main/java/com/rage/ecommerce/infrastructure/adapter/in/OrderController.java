@@ -15,7 +15,7 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/orders/{orderId}/create")
+    @PostMapping("/orders/create")
     public ResponseEntity<String> createOrder() {
         if (orderService.createOrder() != null) {
             return ResponseEntity.ok("Order created successfully, now in PAYMENT_PENDING state.");

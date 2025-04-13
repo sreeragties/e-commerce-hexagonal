@@ -67,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
         saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.OFFER_APPLIED;
+        return stateMachine.getState().getId() == OrderState.OFFER_CHECKING;
     }
 
 
@@ -79,7 +79,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
+        return stateMachine.getState().getId() == OrderState.OFFER_APPLIED;
     }
 
     @Transactional
