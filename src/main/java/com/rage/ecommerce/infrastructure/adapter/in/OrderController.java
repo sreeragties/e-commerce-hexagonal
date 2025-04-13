@@ -18,7 +18,7 @@ public class OrderController {
     @PostMapping("/orders/create")
     public ResponseEntity<String> createOrder() {
         if (orderService.createOrder() != null) {
-            return ResponseEntity.ok("Order created successfully, now in PAYMENT_PENDING state.");
+            return ResponseEntity.ok("Order created successfully, now in CREATED state.");
         } else {
             return ResponseEntity.badRequest().body("Failed to place order.");
         }
@@ -27,16 +27,16 @@ public class OrderController {
     @PostMapping("/orders/{orderId}/check-offer")
     public ResponseEntity<String> checkOffer(@PathVariable UUID orderId) {
         if (orderService.checkOffer(orderId)) {
-            return ResponseEntity.ok("Order created successfully, now in PAYMENT_PENDING state.");
+            return ResponseEntity.ok("Order created successfully, now in OFFER_CHECKING state.");
         } else {
-            return ResponseEntity.badRequest().body("Failed to place order.");
+            return ResponseEntity.badRequest().body("Failed to check for offers.");
         }
     }
 
     @PostMapping("/orders/{orderId}/apply-offer")
     public ResponseEntity<String> applyOffer(@PathVariable UUID orderId) {
         if (orderService.applyOffer(orderId)) {
-            return ResponseEntity.ok("Offer applied successfully, now in PAYMENT_PENDING state.");
+            return ResponseEntity.ok("Offer applied successfully, now in OFFER_APPLIED state.");
         } else {
             return ResponseEntity.badRequest().body("Failed to apply offer.");
         }
