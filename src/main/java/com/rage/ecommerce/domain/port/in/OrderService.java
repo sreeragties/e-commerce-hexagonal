@@ -14,7 +14,7 @@ public interface OrderService {
     boolean checkOffer(UUID orderId);
 
     boolean applyOffer(UUID orderId);
-    boolean removeOffer(UUID orderId);
+    boolean cancelOffer(UUID orderId);
     boolean placeOrder(UUID orderId);
     boolean makePayment(UUID orderId, boolean paymentSuccessful);
     boolean shipOrder(UUID orderId);

@@ -84,7 +84,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public boolean removeOffer(UUID orderId) {
+    public boolean cancelOffer(UUID orderId) {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CANCEL_OFFER);
         Order order = orderRepository.findById(orderId)

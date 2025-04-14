@@ -42,6 +42,15 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/orders/{orderId}/cancel-offer")
+    public ResponseEntity<String> cancelOffer(@PathVariable UUID orderId) {
+        if (orderService.cancelOffer(orderId)) {
+            return ResponseEntity.ok("Offer cancelled successfully, now in PAYMENT_PENDING state.");
+        } else {
+            return ResponseEntity.badRequest().body("Failed to cancel offer.");
+        }
+    }
+
     @PostMapping("/orders/{orderId}/place")
     public ResponseEntity<String> placeOrder(@PathVariable UUID orderId) {
         if (orderService.placeOrder(orderId)) {
