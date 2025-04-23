@@ -1,5 +1,7 @@
 package com.rage.ecommerce.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
 import com.rage.ecommerce.domain.model.Order;
@@ -7,6 +9,9 @@ import com.rage.ecommerce.domain.port.in.OrderService;
 import com.rage.ecommerce.domain.port.out.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
@@ -21,9 +26,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    @Value(value = "${kafka.topic.name}")
+    private String topicName;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
     private final OrderRepository orderRepository;
     private final StateMachineFactory<OrderState, OrderEvent> stateMachineFactory;
-
 
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
         Order order = orderRepository.findById(orderId)
@@ -47,9 +55,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public Order createOrder() {
+    public Order createOrder() throws JsonProcessingException {
         Order order = new Order();
         order.setOrderState(OrderState.CREATED);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonString = objectMapper.writeValueAsString(order);
+        sendMessage(order.getClass(), jsonString);
         return orderRepository.save(order);
     }
 
@@ -161,5 +172,10 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.CANCELLED;
+    }
+
+    private <T> void sendMessage(Class<T> object, String message){
+        String className = object.getSimpleName();
+        kafkaTemplate.send(topicName, className, message);
     }
 }

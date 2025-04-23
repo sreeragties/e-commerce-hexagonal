@@ -1,5 +1,6 @@
 package com.rage.ecommerce.domain.port.in;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rage.ecommerce.domain.model.Order;
 
 import java.util.Optional;
@@ -7,7 +8,7 @@ import java.util.UUID;
 
 public interface OrderService {
 
-    Order createOrder();
+    Order createOrder() throws JsonProcessingException;
 
     Optional<Order> getOrderById(UUID orderId);
 

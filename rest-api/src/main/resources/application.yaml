@@ -17,3 +17,10 @@ spring:
     username: myuser
     password: password
     driver-class-name: org.postgresql.Driver
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+kafka:
+  topic:
+    name: e-commerce

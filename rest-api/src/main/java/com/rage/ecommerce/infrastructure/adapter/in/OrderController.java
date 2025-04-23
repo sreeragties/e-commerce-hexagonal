@@ -1,5 +1,6 @@
 package com.rage.ecommerce.infrastructure.adapter.in;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/orders/create")
-    public ResponseEntity<String> createOrder() {
+    public ResponseEntity<String> createOrder() throws JsonProcessingException {
         if (orderService.createOrder() != null) {
             return ResponseEntity.ok("Order created successfully, now in CREATED state.");
         } else {
