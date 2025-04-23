@@ -5,14 +5,6 @@ import com.rage.ecommerce.infrastructure.adapter.out.OrderEntity;
 
 public class OrderMapper {
 
-//    public static Order toDomain(com.rage.ecommerce.application.dto.OrderDTO dto) {
-//        return new Order();
-//    }
-//
-//    public static com.rage.ecommerce.application.dto.OrderDTO toDTO(Order order) {
-//        com.rage.ecommerce.application.dto.OrderDTO dto = new com.rage.ecommerce.application.dto.OrderDTO();
-//        return dto;
-//    }
 
     public static OrderEntity toEntity(Order order) {
         OrderEntity entity = new OrderEntity();
