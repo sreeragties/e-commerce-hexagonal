@@ -1,12 +1,13 @@
 package com.rage.ecommerce.infrastructure.adapter.in;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.rage.ecommerce.application.dto.CreateOrderRequestDTO;
+import com.rage.ecommerce.application.dto.ErrorResponseDTO;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -17,11 +18,13 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/orders/create")
-    public ResponseEntity<String> createOrder() throws JsonProcessingException {
-        if (orderService.createOrder() != null) {
-            return ResponseEntity.ok("Order created successfully, now in CREATED state.");
+    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
+        var order = orderService.createOrder(createOrderRequestDTO);
+        if (order != null) {
+            return ResponseEntity.ok(order);
         } else {
-            return ResponseEntity.badRequest().body("Failed to place order.");
+            ErrorResponseDTO errorResponse = new ErrorResponseDTO("Failed to create order. Please try again.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 

@@ -2,6 +2,8 @@ package com.rage.ecommerce.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rage.ecommerce.application.dto.CreateOrderRequestDTO;
+import com.rage.ecommerce.application.dto.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
 import com.rage.ecommerce.domain.model.Order;
@@ -9,7 +11,6 @@ import com.rage.ecommerce.domain.port.in.OrderService;
 import com.rage.ecommerce.domain.port.out.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.rage.ecommerce.application.mapper.OrderMapper.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,13 +58,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public Order createOrder() throws JsonProcessingException {
-        Order order = new Order();
+    public CreateOrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
+        Order order = toDomain(createOrderRequestDTO);
         order.setOrderState(OrderState.CREATED);
         ObjectMapper objectMapper = new ObjectMapper();
-        String jsonString = objectMapper.writeValueAsString(order);
-        sendMessage(order.getClass(), jsonString);
-        return orderRepository.save(order);
+        var response = toCreateOrderResponseDTO(orderRepository.save(order));
+        String serialisedResponse = objectMapper.writeValueAsString(response);
+        sendMessage(response.getClass(), serialisedResponse);
+        return response;
     }
 
     @Transactional
