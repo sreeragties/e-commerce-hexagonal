@@ -10,15 +10,19 @@ public class OrderMapper {
 
     public static OrderEntity toEntity(Order order) {
         OrderEntity entity = new OrderEntity();
-        entity.setId(order.getId());
+        entity.setProcessId(order.getProcessId());
         entity.setOrderState(order.getOrderState());
+        entity.setItemName(order.getItemName());
+        entity.setCustomerName(order.getCustomerName());
         return entity;
     }
 
     public static Order toDomain(OrderEntity entity) {
         return Order.builder()
-                .id(entity.getId())
+                .processId(entity.getProcessId())
                 .orderState(entity.getOrderState())
+                .customerName(entity.getCustomerName())
+                .itemName(entity.getItemName())
                 .build();
     }
 
@@ -31,7 +35,7 @@ public class OrderMapper {
 
     public static CreateOrderResponseDTO toCreateOrderResponseDTO(Order order) {
         return CreateOrderResponseDTO.builder()
-                .id(order.getId())
+                .processId(order.getProcessId())
                 .orderState(order.getOrderState())
                 .customerName(order.getCustomerName())
                 .itemName(order.getItemName())

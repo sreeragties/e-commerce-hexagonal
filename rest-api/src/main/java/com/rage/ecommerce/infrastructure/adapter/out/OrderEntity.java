@@ -14,9 +14,15 @@ public class OrderEntity {
 
     @Id
     @GeneratedValue(generator = "UUID")
-    private UUID id;
+    private UUID processId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_state")
     private OrderState orderState;
+
+    @Column
+    private String itemName;
+
+    @Column
+    private String customerName;
 }

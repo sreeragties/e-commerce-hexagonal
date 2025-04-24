@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 public class Order {
 
-    private UUID id;
+    private UUID processId;
     private OrderState orderState;
     private String itemName;
     private String customerName;

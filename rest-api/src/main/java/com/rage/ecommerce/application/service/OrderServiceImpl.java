@@ -39,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        StateMachine<OrderState, OrderEvent> sm = stateMachineFactory.getStateMachine(order.getId().toString());
+        StateMachine<OrderState, OrderEvent> sm = stateMachineFactory.getStateMachine(order.getProcessId().toString());
         sm.startReactively().block(); // Start the state machine if it's not already running
         sm.getStateMachineAccessor()
                 .doWithAllRegions(sma -> sma.resetStateMachine(new DefaultStateMachineContext<>(order.getOrderState(), null, null, null)));
@@ -64,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
         ObjectMapper objectMapper = new ObjectMapper();
         var response = toCreateOrderResponseDTO(orderRepository.save(order));
         String serialisedResponse = objectMapper.writeValueAsString(response);
-        sendMessage(response.getClass(), serialisedResponse);
+        sendMessage(response.getProcessId(), serialisedResponse);
         return response;
     }
 
@@ -178,8 +178,8 @@ public class OrderServiceImpl implements OrderService {
         return stateMachine.getState().getId() == OrderState.CANCELLED;
     }
 
-    private <T> void sendMessage(Class<T> object, String message){
-        String className = object.getSimpleName();
-        kafkaTemplate.send(topicName, className, message);
+    private <T> void sendMessage(UUID processId, String message){
+        String process = processId.toString();
+        kafkaTemplate.send(topicName, process, message);
     }
 }

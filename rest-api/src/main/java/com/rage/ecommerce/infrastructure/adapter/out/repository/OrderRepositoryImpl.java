@@ -17,8 +17,8 @@ public class OrderRepositoryImpl implements OrderRepository {
     private final JpaOrderRepository jpaOrderRepository;
 
     @Override
-    public Optional<Order> findById(UUID orderId) {
-        OrderEntity orderEntity = jpaOrderRepository.findById(orderId).orElseThrow();
+    public Optional<Order> findById(UUID processId) {
+        OrderEntity orderEntity = jpaOrderRepository.findById(processId).orElseThrow();
         return Optional.of(OrderMapper.toDomain(orderEntity));
     }
 
