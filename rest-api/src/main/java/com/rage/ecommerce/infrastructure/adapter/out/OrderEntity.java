@@ -20,9 +20,9 @@ public class OrderEntity {
     @Column(name = "order_state")
     private OrderState orderState;
 
-    @Column
-    private String itemName;
+    @Column(name = "item_id")
+    private String itemId;
 
-    @Column
-    private String customerName;
+    @Column(name = "customer_id")
+    private String customerId;
 }

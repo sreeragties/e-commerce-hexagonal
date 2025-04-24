@@ -12,6 +12,6 @@ public class CreateOrderResponseDTO {
 
     private UUID processId;
     private OrderState orderState;
-    private String itemName;
-    private String customerName;
+    private String itemId;
+    private String customerId;
 }

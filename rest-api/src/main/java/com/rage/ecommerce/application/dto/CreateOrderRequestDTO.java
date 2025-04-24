@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder
 public class CreateOrderRequestDTO {
 
-    private String itemName;
-    private String customerName;
+    private String itemId;
+    private String customerId;
 
 }
