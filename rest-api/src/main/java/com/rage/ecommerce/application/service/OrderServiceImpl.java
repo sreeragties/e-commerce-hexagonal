@@ -2,8 +2,8 @@ package com.rage.ecommerce.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rage.ecommerce.application.dto.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.CreateOrderResponseDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
 import com.rage.ecommerce.domain.model.Order;

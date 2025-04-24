@@ -1,4 +1,4 @@
-package com.rage.ecommerce.application.dto;
+package com.rage.ecommerce.application.dto.order;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

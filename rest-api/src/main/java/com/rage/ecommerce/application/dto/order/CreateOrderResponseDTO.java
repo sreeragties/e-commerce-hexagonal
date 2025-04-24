@@ -1,4 +1,4 @@
-package com.rage.ecommerce.application.dto;
+package com.rage.ecommerce.application.dto.order;
 
 import com.rage.ecommerce.domain.enums.OrderState;
 import lombok.Builder;
@@ -12,6 +12,6 @@ public class CreateOrderResponseDTO {
 
     private UUID processId;
     private OrderState orderState;
-    private String itemId;
-    private String customerId;
+    private UUID itemId;
+    private UUID customerId;
 }

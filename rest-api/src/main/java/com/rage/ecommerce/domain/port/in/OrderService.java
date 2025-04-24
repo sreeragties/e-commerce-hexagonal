@@ -1,8 +1,8 @@
 package com.rage.ecommerce.domain.port.in;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.rage.ecommerce.application.dto.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.CreateOrderResponseDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.model.Order;
 
 import java.util.Optional;

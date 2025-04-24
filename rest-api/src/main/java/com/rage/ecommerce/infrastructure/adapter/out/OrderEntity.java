@@ -20,9 +20,10 @@ public class OrderEntity {
     @Column(name = "order_state")
     private OrderState orderState;
 
-    @Column(name = "item_id")
-    private String itemId;
+    @ManyToOne
+    @JoinColumn(name = "item_id", referencedColumnName = "itemId")
+    private ItemEntity item;
 
     @Column(name = "customer_id")
-    private String customerId;
+    private UUID customerId;
 }

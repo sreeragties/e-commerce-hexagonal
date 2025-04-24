@@ -1,8 +1,9 @@
 package com.rage.ecommerce.application.mapper;
 
-import com.rage.ecommerce.application.dto.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.CreateOrderResponseDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.model.Order;
+import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
 import com.rage.ecommerce.infrastructure.adapter.out.OrderEntity;
 
 public class OrderMapper {
@@ -12,7 +13,11 @@ public class OrderMapper {
         OrderEntity entity = new OrderEntity();
         entity.setProcessId(order.getProcessId());
         entity.setOrderState(order.getOrderState());
-        entity.setItemId(order.getItemId());
+
+        ItemEntity item = new ItemEntity();
+        item.setItemId(order.getItemId());
+
+        entity.setItem(item);
         entity.setCustomerId(order.getCustomerId());
         return entity;
     }
@@ -22,7 +27,7 @@ public class OrderMapper {
                 .processId(entity.getProcessId())
                 .orderState(entity.getOrderState())
                 .customerId(entity.getCustomerId())
-                .itemId(entity.getItemId())
+                .itemId(entity.getItem().getItemId())
                 .build();
     }
 

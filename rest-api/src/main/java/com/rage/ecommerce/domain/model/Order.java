@@ -12,7 +12,7 @@ public class Order {
 
     private UUID processId;
     private OrderState orderState;
-    private String itemId;
-    private String customerId;
+    private UUID itemId;
+    private UUID customerId;
 
 }

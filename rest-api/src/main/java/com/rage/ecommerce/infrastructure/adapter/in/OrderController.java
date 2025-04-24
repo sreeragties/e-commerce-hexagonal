@@ -1,8 +1,8 @@
 package com.rage.ecommerce.infrastructure.adapter.in;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.rage.ecommerce.application.dto.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.ErrorResponseDTO;
+import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
+import com.rage.ecommerce.application.dto.order.ErrorResponseDTO;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
