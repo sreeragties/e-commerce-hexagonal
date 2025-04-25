@@ -36,26 +36,6 @@ public class OrderServiceImpl implements OrderService {
     private final StateMachineFactory<OrderState, OrderEvent> stateMachineFactory;
     private final OrderMapper orderMapper;
 
-    private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        StateMachine<OrderState, OrderEvent> sm = stateMachineFactory.getStateMachine(order.getProcessId().toString());
-        sm.startReactively().block(); // Start the state machine if it's not already running
-        sm.getStateMachineAccessor()
-                .doWithAllRegions(sma -> sma.resetStateMachine(new DefaultStateMachineContext<>(order.getOrderState(), null, null, null)));
-        return sm;
-    }
-
-    private void sendEvent(StateMachine<OrderState, OrderEvent> stateMachine, OrderEvent event) {
-        Message<OrderEvent> message = MessageBuilder.withPayload(event).build();
-        stateMachine.sendEvent(message);
-    }
-
-    private void saveState(StateMachine<OrderState, OrderEvent> stateMachine, Order order) {
-        order.setOrderState(stateMachine.getState().getId());
-        orderRepository.save(order);
-    }
-
     @Transactional
     @Override
     public CreateOrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
@@ -181,5 +161,25 @@ public class OrderServiceImpl implements OrderService {
     private <T> void sendMessage(UUID processId, String message){
         String process = processId.toString();
         kafkaTemplate.send(topicName, process, message);
+    }
+
+    private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        StateMachine<OrderState, OrderEvent> sm = stateMachineFactory.getStateMachine(order.getProcessId().toString());
+        sm.startReactively().block(); // Start the state machine if it's not already running
+        sm.getStateMachineAccessor()
+                .doWithAllRegions(sma -> sma.resetStateMachine(new DefaultStateMachineContext<>(order.getOrderState(), null, null, null)));
+        return sm;
+    }
+
+    private void sendEvent(StateMachine<OrderState, OrderEvent> stateMachine, OrderEvent event) {
+        Message<OrderEvent> message = MessageBuilder.withPayload(event).build();
+        stateMachine.sendEvent(message);
+    }
+
+    private void saveState(StateMachine<OrderState, OrderEvent> stateMachine, Order order) {
+        order.setOrderState(stateMachine.getState().getId());
+        orderRepository.save(order);
     }
 }
