@@ -2,23 +2,20 @@ package com.rage.ecommerce.application.mapper;
 
 import com.rage.ecommerce.application.dto.item.CreateItemRequestDTO;
 import com.rage.ecommerce.application.dto.item.CreateItemResponseDTO;
-import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.model.Item;
-import com.rage.ecommerce.domain.model.Order;
 import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
 
 public class ItemMapper {
 
 
     public static ItemEntity toEntity(Item item) {
-        ItemEntity entity = new ItemEntity();
-        entity.setItemId(item.getItemId());
-        entity.setName(item.getName());
-        entity.setDescription(item.getDescription());
-        entity.setPrice(item.getPrice());
 
-        return entity;
+        return ItemEntity.builder()
+                .itemId(item.getItemId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .price(item.getPrice())
+                .build();
     }
 
     public static Item toDomain(ItemEntity entity) {

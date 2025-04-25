@@ -10,16 +10,17 @@ public class OrderMapper {
 
 
     public static OrderEntity toEntity(Order order) {
-        OrderEntity entity = new OrderEntity();
-        entity.setProcessId(order.getProcessId());
-        entity.setOrderState(order.getOrderState());
 
-        ItemEntity item = new ItemEntity();
-        item.setItemId(order.getItemId());
+        ItemEntity item = ItemEntity.builder()
+                .itemId(order.getItemId())
+                .build();
 
-        entity.setItem(item);
-        entity.setCustomerId(order.getCustomerId());
-        return entity;
+        return OrderEntity.builder()
+                .processId(order.getProcessId())
+                .orderState(order.getOrderState())
+                .customerId(order.getCustomerId())
+                .item(item)
+                .build();
     }
 
     public static Order toDomain(OrderEntity entity) {
