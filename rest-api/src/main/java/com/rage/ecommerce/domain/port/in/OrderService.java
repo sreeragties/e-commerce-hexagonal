@@ -1,6 +1,7 @@
 package com.rage.ecommerce.domain.port.in;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.rage.ecommerce.application.dto.order.CheckOrderResponseDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.model.Order;
@@ -14,7 +15,7 @@ public interface OrderService {
 
     Optional<Order> getOrderById(UUID orderId);
 
-    boolean checkOffer(UUID orderId);
+    CheckOrderResponseDTO checkOffer(UUID orderId) throws JsonProcessingException;
 
     boolean applyOffer(UUID orderId);
     boolean cancelOffer(UUID orderId);

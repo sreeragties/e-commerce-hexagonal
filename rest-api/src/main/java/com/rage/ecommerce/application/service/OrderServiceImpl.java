@@ -2,6 +2,7 @@ package com.rage.ecommerce.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rage.ecommerce.application.dto.order.CheckOrderResponseDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.application.mapper.OrderMapper;
@@ -46,11 +47,12 @@ public class OrderServiceImpl implements OrderService {
     public CreateOrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
         Order order = orderMapper.toDomain(createOrderRequestDTO);
         order.setOrderState(OrderState.CREATED);
-        ObjectMapper objectMapper = new ObjectMapper();
-        var response = orderMapper.toCreateOrderResponseDTO(orderRepository.save(order));
-        String serialisedResponse = objectMapper.writeValueAsString(response);
-        sendProducerMessage(response, serialisedResponse);
-        return response;
+
+        var response = orderRepository.save(order);
+        var dtoResponse = orderMapper.toCreateOrderResponseDTO(response);
+
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+        return orderMapper.toCreateOrderResponseDTO(response);
     }
 
     @Transactional
@@ -60,14 +62,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public boolean checkOffer(UUID orderId) {
+    public CheckOrderResponseDTO checkOffer(UUID orderId) throws JsonProcessingException {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
-        saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.OFFER_CHECKING;
+        var response = saveState(stateMachine, order);
+        var dtoResponse = orderMapper.toCheckOrderResponseDTO(response);
+
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+        return orderMapper.toCheckOrderResponseDTO(order);
     }
 
 
@@ -163,11 +168,15 @@ public class OrderServiceImpl implements OrderService {
         return stateMachine.getState().getId() == OrderState.CANCELLED;
     }
 
-    private <T> void sendProducerMessage(CreateOrderResponseDTO createOrderResponseDTO, String message){
-        String processId = createOrderResponseDTO.getProcessId().toString();
+    private <T> void sendProducerMessage(String className, T message, UUID processId) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String serialisedResponse = objectMapper.writeValueAsString(message);
+        String serialisedProcessId = processId.toString();
+
         List<Header> headers = new ArrayList<>();
-        headers.add(new RecordHeader("DTOClassName", createOrderResponseDTO.getClass().getSimpleName().getBytes()));
-        ProducerRecord<String, String> record = new ProducerRecord <>(topicName, null, processId, message, headers);
+        headers.add(new RecordHeader("DTOClassName", className.getBytes()));
+
+        ProducerRecord<String, String> record = new ProducerRecord <>(topicName, null, serialisedProcessId, serialisedResponse, headers);
         kafkaTemplate.send(record);
     }
 
@@ -186,8 +195,8 @@ public class OrderServiceImpl implements OrderService {
         stateMachine.sendEvent(message);
     }
 
-    private void saveState(StateMachine<OrderState, OrderEvent> stateMachine, Order order) {
+    private Order saveState(StateMachine<OrderState, OrderEvent> stateMachine, Order order) {
         order.setOrderState(stateMachine.getState().getId());
-        orderRepository.save(order);
+        return orderRepository.save(order);
     }
 }

@@ -29,11 +29,13 @@ public class OrderController {
     }
 
     @PostMapping("/orders/{orderId}/check-offer")
-    public ResponseEntity<String> checkOffer(@PathVariable UUID orderId) {
-        if (orderService.checkOffer(orderId)) {
-            return ResponseEntity.ok("Order created successfully, now in OFFER_CHECKING state.");
+    public ResponseEntity<?> checkOffer(@PathVariable UUID orderId) throws JsonProcessingException {
+        var response = orderService.checkOffer(orderId);
+        if (response != null) {
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.badRequest().body("Failed to check for offers.");
+            ErrorResponseDTO errorResponse = new ErrorResponseDTO("Failed to check order. Please try again.");
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 

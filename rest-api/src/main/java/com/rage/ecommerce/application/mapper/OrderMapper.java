@@ -1,8 +1,8 @@
 package com.rage.ecommerce.application.mapper;
 
+import com.rage.ecommerce.application.dto.order.CheckOrderResponseDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
-import com.rage.ecommerce.domain.model.Customer;
 import com.rage.ecommerce.domain.model.Order;
 import com.rage.ecommerce.infrastructure.adapter.out.CustomerEntity;
 import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
@@ -37,4 +37,8 @@ public interface OrderMapper {
     static CustomerEntity mapCustomerIdToEntity(UUID customerId) {
         return CustomerEntity.builder().customerId(customerId).build();
     }
+
+    Order toDomain(CheckOrderResponseDTO dto);
+
+    CheckOrderResponseDTO toCheckOrderResponseDTO(Order order);
 }
