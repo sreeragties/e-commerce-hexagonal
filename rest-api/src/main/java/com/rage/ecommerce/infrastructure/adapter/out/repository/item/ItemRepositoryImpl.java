@@ -1,4 +1,4 @@
-package com.rage.ecommerce.infrastructure.adapter.out.repository;
+package com.rage.ecommerce.infrastructure.adapter.out.repository.item;
 
 import com.rage.ecommerce.application.mapper.ItemMapper;
 import com.rage.ecommerce.domain.model.Item;

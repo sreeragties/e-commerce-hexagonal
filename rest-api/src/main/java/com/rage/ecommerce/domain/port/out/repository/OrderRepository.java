@@ -1,7 +1,6 @@
 package com.rage.ecommerce.domain.port.out.repository;
 
 import com.rage.ecommerce.domain.model.Order;
-import com.rage.ecommerce.infrastructure.adapter.out.repository.JpaOrderRepository;
 
 import java.util.Optional;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package com.rage.ecommerce.infrastructure.adapter.out.repository;
+package com.rage.ecommerce.infrastructure.adapter.out.repository.order;
 
 import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.model.Order;

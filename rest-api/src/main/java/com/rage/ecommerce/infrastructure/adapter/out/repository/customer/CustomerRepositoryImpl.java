@@ -1,13 +1,9 @@
-package com.rage.ecommerce.infrastructure.adapter.out.repository;
+package com.rage.ecommerce.infrastructure.adapter.out.repository.customer;
 
 import com.rage.ecommerce.application.mapper.CustomerMapper;
-import com.rage.ecommerce.application.mapper.ItemMapper;
 import com.rage.ecommerce.domain.model.Customer;
-import com.rage.ecommerce.domain.model.Item;
 import com.rage.ecommerce.domain.port.out.repository.CustomerRepository;
-import com.rage.ecommerce.domain.port.out.repository.ItemRepository;
 import com.rage.ecommerce.infrastructure.adapter.out.CustomerEntity;
-import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
