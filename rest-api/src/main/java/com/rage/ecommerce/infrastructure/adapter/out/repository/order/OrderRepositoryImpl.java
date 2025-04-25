@@ -19,7 +19,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Optional<Order> findById(UUID processId) {
-        OrderEntity orderEntity = jpaOrderRepository.findById(processId).orElseThrow();
+        OrderEntity orderEntity = jpaOrderRepository.findById(processId).orElseThrow(() -> new RuntimeException("Order not found with processId: " + processId));
         return Optional.of(orderMapper.toDomain(orderEntity));
     }
 

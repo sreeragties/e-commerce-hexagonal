@@ -3,8 +3,7 @@ package com.rage.ecommerce.infrastructure.adapter.out;
 
 import com.rage.ecommerce.domain.enums.OrderState;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -12,6 +11,8 @@ import java.util.UUID;
 @Table(name = "orders")
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderEntity {
 
     @Id
