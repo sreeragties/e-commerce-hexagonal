@@ -15,15 +15,16 @@ import java.util.UUID;
 public class ItemRepositoryImpl implements ItemRepository {
 
     private final JpaItemRepository jpaItemRepository;
+    private final ItemMapper itemMapper;
 
     @Override
     public Optional<Item> findByItemId(UUID itemId) {
         ItemEntity itemEntity = jpaItemRepository.findById(itemId).orElseThrow();
-        return Optional.of(ItemMapper.toDomain(itemEntity));
+        return Optional.of(itemMapper.toDomain(itemEntity));
     }
 
     @Override
     public Item save(Item item) {
-        return ItemMapper.toDomain(jpaItemRepository.save(ItemMapper.toEntity(item)));
+        return itemMapper.toDomain(jpaItemRepository.save(itemMapper.toEntity(item)));
     }
 }

@@ -15,16 +15,17 @@ import java.util.UUID;
 public class OrderRepositoryImpl implements OrderRepository {
 
     private final JpaOrderRepository jpaOrderRepository;
+    private final OrderMapper orderMapper;
 
     @Override
     public Optional<Order> findById(UUID processId) {
         OrderEntity orderEntity = jpaOrderRepository.findById(processId).orElseThrow();
-        return Optional.of(OrderMapper.toDomain(orderEntity));
+        return Optional.of(orderMapper.toDomain(orderEntity));
     }
 
     @Override
     public Order save(Order order) {
-        OrderEntity orderEntity = OrderMapper.toEntity(order);
-        return OrderMapper.toDomain(jpaOrderRepository.save(orderEntity));
+        OrderEntity orderEntity = orderMapper.toEntity(order);
+        return orderMapper.toDomain(jpaOrderRepository.save(orderEntity));
     }
 }

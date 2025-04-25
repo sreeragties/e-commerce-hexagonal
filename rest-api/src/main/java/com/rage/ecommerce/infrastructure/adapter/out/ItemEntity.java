@@ -1,9 +1,6 @@
 package com.rage.ecommerce.infrastructure.adapter.out;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,6 +14,7 @@ public class ItemEntity {
 
     @Id
     @GeneratedValue(generator = "UUID")
+    @Column(name = "item_id", updatable = false, nullable = false)
     private UUID itemId;
 
     private String name;

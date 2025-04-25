@@ -5,46 +5,27 @@ import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.domain.model.Order;
 import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
 import com.rage.ecommerce.infrastructure.adapter.out.OrderEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-public class OrderMapper {
+import java.util.UUID;
 
+@Mapper(componentModel = "spring")
+public interface OrderMapper {
 
-    public static OrderEntity toEntity(Order order) {
+    @Mapping(source = "itemId", target = "item", qualifiedByName = "mapItemIdToEntity")
+    OrderEntity toEntity(Order order);
 
-        ItemEntity item = ItemEntity.builder()
-                .itemId(order.getItemId())
-                .build();
+    @Mapping(source = "item.itemId", target = "itemId")
+    Order toDomain(OrderEntity entity);
 
-        return OrderEntity.builder()
-                .processId(order.getProcessId())
-                .orderState(order.getOrderState())
-                .customerId(order.getCustomerId())
-                .item(item)
-                .build();
-    }
+    Order toDomain(CreateOrderRequestDTO dto);
 
-    public static Order toDomain(OrderEntity entity) {
-        return Order.builder()
-                .processId(entity.getProcessId())
-                .orderState(entity.getOrderState())
-                .customerId(entity.getCustomerId())
-                .itemId(entity.getItem().getItemId())
-                .build();
-    }
+    CreateOrderResponseDTO toCreateOrderResponseDTO(Order order);
 
-    public static Order toDomain(CreateOrderRequestDTO dto) {
-        return Order.builder()
-                .itemId(dto.getItemId())
-                .customerId(dto.getCustomerId())
-                .build();
-    }
-
-    public static CreateOrderResponseDTO toCreateOrderResponseDTO(Order order) {
-        return CreateOrderResponseDTO.builder()
-                .processId(order.getProcessId())
-                .orderState(order.getOrderState())
-                .customerId(order.getCustomerId())
-                .itemId(order.getItemId())
-                .build();
+    @Named("mapItemIdToEntity")
+    static ItemEntity mapItemIdToEntity(UUID itemId) {
+        return ItemEntity.builder().itemId(itemId).build();
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
+import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
 import com.rage.ecommerce.domain.model.Order;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.rage.ecommerce.application.mapper.OrderMapper.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,9 +32,9 @@ public class OrderServiceImpl implements OrderService {
     @Value(value = "${kafka.topic.name}")
     private String topicName;
     private final KafkaTemplate<String, String> kafkaTemplate;
-
     private final OrderRepository orderRepository;
     private final StateMachineFactory<OrderState, OrderEvent> stateMachineFactory;
+    private final OrderMapper orderMapper;
 
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
         Order order = orderRepository.findById(orderId)
@@ -59,10 +59,10 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public CreateOrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
-        Order order = toDomain(createOrderRequestDTO);
+        Order order = orderMapper.toDomain(createOrderRequestDTO);
         order.setOrderState(OrderState.CREATED);
         ObjectMapper objectMapper = new ObjectMapper();
-        var response = toCreateOrderResponseDTO(orderRepository.save(order));
+        var response = orderMapper.toCreateOrderResponseDTO(orderRepository.save(order));
         String serialisedResponse = objectMapper.writeValueAsString(response);
         sendMessage(response.getProcessId(), serialisedResponse);
         return response;

@@ -23,9 +23,10 @@ public class OrderEntity {
     private OrderState orderState;
 
     @ManyToOne
-    @JoinColumn(name = "item_id", referencedColumnName = "itemId")
+    @JoinColumn(name = "item_id", referencedColumnName = "item_id")
     private ItemEntity item;
 
-    @Column(name = "customer_id")
-    private UUID customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
+    private CustomerEntity customer;
 }

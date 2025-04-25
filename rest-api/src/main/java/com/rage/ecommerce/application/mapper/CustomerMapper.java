@@ -1,24 +1,22 @@
 package com.rage.ecommerce.application.mapper;
 
+import com.rage.ecommerce.application.dto.customer.CreateCustomerRequestDTO;
+import com.rage.ecommerce.application.dto.customer.CreateCustomerResponseDTO;
 import com.rage.ecommerce.domain.model.Customer;
 import com.rage.ecommerce.infrastructure.adapter.out.CustomerEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class CustomerMapper {
+@Mapper(componentModel = "spring")
+public interface CustomerMapper {
 
-    public static CustomerEntity toEntity(Customer customer) {
+    CustomerEntity toEntity(Customer customer);
+    Customer toDomain(CustomerEntity entity);
 
-        return CustomerEntity.builder()
-                .customerId(customer.getCustomerId())
-                .customerName(customer.getCustomerName())
-                .customerEmail(customer.getCustomerEmail())
-                .build();
-    }
+    Customer toDomain(CreateCustomerRequestDTO dto);
 
-    public static Customer toDomain(CustomerEntity entity) {
-        return Customer.builder()
-                .customerId(entity.getCustomerId())
-                .customerName(entity.getCustomerName())
-                .customerEmail(entity.getCustomerEmail())
-                .build();
-    }
+    @Mapping(source = "customerId", target = "customerId")
+    @Mapping(source = "name", target = "name")
+    CreateCustomerResponseDTO toCreateCustomerResponseDTO(Customer customer);
 }
+

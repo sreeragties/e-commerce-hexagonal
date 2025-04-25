@@ -1,4 +1,4 @@
-package com.rage.ecommerce.domain.model;
+package com.rage.ecommerce.application.dto.customer;
 
 import lombok.Builder;
 import lombok.Data;
@@ -7,10 +7,8 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class Customer {
+public class CreateCustomerResponseDTO {
 
     private UUID customerId;
     private String name;
-    private String email;
-
 }

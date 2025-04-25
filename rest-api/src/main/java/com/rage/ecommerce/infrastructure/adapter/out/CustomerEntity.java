@@ -1,7 +1,6 @@
 package com.rage.ecommerce.infrastructure.adapter.out;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +12,14 @@ import java.util.UUID;
 @Builder
 public class CustomerEntity {
 
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @Column(name = "customer_id", updatable = false, nullable = false)
     private UUID customerId;
-    private String customerName;
-    private String customerEmail;
+
+    @Column(name = "customer_name")
+    private String name;
+
+    @Column(name = "customer_email")
+    private String email;
 }

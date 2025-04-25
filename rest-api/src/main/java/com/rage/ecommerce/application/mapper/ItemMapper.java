@@ -4,42 +4,19 @@ import com.rage.ecommerce.application.dto.item.CreateItemRequestDTO;
 import com.rage.ecommerce.application.dto.item.CreateItemResponseDTO;
 import com.rage.ecommerce.domain.model.Item;
 import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class ItemMapper {
+@Mapper(componentModel = "spring")
+public interface ItemMapper {
 
+    ItemEntity toEntity(Item item);
 
-    public static ItemEntity toEntity(Item item) {
+    Item toDomain(ItemEntity entity);
 
-        return ItemEntity.builder()
-                .itemId(item.getItemId())
-                .name(item.getName())
-                .description(item.getDescription())
-                .price(item.getPrice())
-                .build();
-    }
+    Item toDomain(CreateItemRequestDTO dto);
 
-    public static Item toDomain(ItemEntity entity) {
-        return Item.builder()
-                .itemId(entity.getItemId())
-                .name(entity.getName())
-                .description(entity.getDescription())
-                .price(entity.getPrice())
-                .build();
-    }
-
-    public static Item toDomain(CreateItemRequestDTO dto) {
-        return Item.builder()
-                .name(dto.getName())
-                .description(dto.getDescription())
-                .price(dto.getPrice())
-                .build();
-    }
-
-    public static CreateItemResponseDTO toCreateItemResponseDTO(Item item) {
-        return CreateItemResponseDTO.builder()
-                .itemId(item.getItemId())
-                .name(item.getName())
-                .build();
-    }
-
+    @Mapping(source = "itemId", target = "itemId")
+    @Mapping(source = "name", target = "name")
+    CreateItemResponseDTO toCreateItemResponseDTO(Item item);
 }
