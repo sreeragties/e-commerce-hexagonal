@@ -12,6 +12,9 @@ import com.rage.ecommerce.domain.port.in.OrderService;
 import com.rage.ecommerce.domain.port.out.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
@@ -21,8 +24,10 @@ import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 
 @Service
@@ -44,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
         ObjectMapper objectMapper = new ObjectMapper();
         var response = orderMapper.toCreateOrderResponseDTO(orderRepository.save(order));
         String serialisedResponse = objectMapper.writeValueAsString(response);
-        sendMessage(response.getProcessId(), serialisedResponse);
+        sendProducerMessage(response, serialisedResponse);
         return response;
     }
 
@@ -158,9 +163,12 @@ public class OrderServiceImpl implements OrderService {
         return stateMachine.getState().getId() == OrderState.CANCELLED;
     }
 
-    private <T> void sendMessage(UUID processId, String message){
-        String process = processId.toString();
-        kafkaTemplate.send(topicName, process, message);
+    private <T> void sendProducerMessage(CreateOrderResponseDTO createOrderResponseDTO, String message){
+        String processId = createOrderResponseDTO.getProcessId().toString();
+        List<Header> headers = new ArrayList<>();
+        headers.add(new RecordHeader("DTOClassName", createOrderResponseDTO.getClass().getSimpleName().getBytes()));
+        ProducerRecord<String, String> record = new ProducerRecord <>(topicName, null, processId, message, headers);
+        kafkaTemplate.send(record);
     }
 
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
