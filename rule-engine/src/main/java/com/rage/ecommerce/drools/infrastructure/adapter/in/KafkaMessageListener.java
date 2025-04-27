@@ -34,17 +34,6 @@ public class KafkaMessageListener {
         }
     }
 
-    private String getDtoClassName(Header[] headers) {
-        if (headers != null) {
-            for (Header header : headers) {
-                if ("DTOClassName".equals(header.key())) {
-                    return new String(header.value());
-                }
-            }
-        }
-        return null;
-    }
-
     @Component
     public static class ApplyOfferRequestDTOHandler implements MessageHandler<ApplyOfferRequestDTO> {
         @Override
