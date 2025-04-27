@@ -5,3 +5,10 @@ spring:
   application:
     name: Rule Engine
 
+  kafka:
+    bootstrap-servers: http://localhost:9092
+
+kafka:
+  topic:
+    name: e-commerce
+  group-id: order-processing-group
