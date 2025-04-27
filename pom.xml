@@ -18,6 +18,7 @@
 
     <modules>
         <module>rest-api</module>
+        <module>rule-engine</module>
     </modules>
 
     <properties>
