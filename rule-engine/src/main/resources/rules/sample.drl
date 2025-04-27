@@ -1,0 +1,11 @@
+package rules
+
+import com.rage.ecommerce.drools.domain.model.Fact;
+
+rule "Sample Rule"
+when
+    $fact : Fact(isSomeProperty() == true)
+then
+    $fact.setResult("Condition met!");
+    System.out.println("Rule fired: " + $fact.toString());
+end
