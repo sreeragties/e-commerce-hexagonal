@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rage.ecommerce.application.dto.order.CheckOrderResponseDTO;
+import com.rage.ecommerce.application.dto.order.CheckOfferResponseDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
 import com.rage.ecommerce.application.mapper.OrderMapper;
@@ -68,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public CheckOrderResponseDTO checkOffer(UUID orderId) throws JsonProcessingException {
+    public CheckOfferResponseDTO checkOffer(UUID orderId) throws JsonProcessingException {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
         Order order = orderRepository.findById(orderId)

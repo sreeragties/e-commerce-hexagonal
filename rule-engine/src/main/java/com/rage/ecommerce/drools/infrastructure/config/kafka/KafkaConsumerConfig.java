@@ -42,7 +42,7 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.setRecordFilterStrategy(record -> {
             String dtoClassName = getDtoClassName(record.headers().toArray());
-            return !"CheckOrderResponseDTO".equals(dtoClassName);
+            return !"CheckOfferResponseDTO".equals(dtoClassName);
         });
         return factory;
     }

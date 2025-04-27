@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class CheckOrderResponseDTO {
+public class CheckOfferResponseDTO {
 
     private UUID processId;
     private OrderState orderState;
