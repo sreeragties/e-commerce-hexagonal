@@ -18,7 +18,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     private final CustomerMapper customerMapper;
 
     @Override
-    public Optional<Customer> findByItemId(UUID customerId) {
+    public Optional<Customer> findByCustomerId(UUID customerId) {
         CustomerEntity customerEntity = jpaCustomerRepository.findById(customerId).orElseThrow();
         return Optional.of(customerMapper.toDomain(customerEntity));
     }

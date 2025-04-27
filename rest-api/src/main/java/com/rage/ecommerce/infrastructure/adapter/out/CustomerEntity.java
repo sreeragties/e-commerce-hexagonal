@@ -1,11 +1,13 @@
 package com.rage.ecommerce.infrastructure.adapter.out;
 
+import com.rage.ecommerce.domain.enums.CustomerSubscription;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -26,4 +28,11 @@ public class CustomerEntity {
 
     @Column(name = "customer_email")
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "subscription")
+    private CustomerSubscription subscription;
+
+    @Column(name = "dob")
+    private LocalDate dateOfBirth;
 }

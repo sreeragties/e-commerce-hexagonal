@@ -2,6 +2,8 @@ package com.rage.ecommerce.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rage.ecommerce.application.dto.order.CheckOrderResponseDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
 import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
@@ -10,6 +12,8 @@ import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
 import com.rage.ecommerce.domain.model.Order;
 import com.rage.ecommerce.domain.port.in.OrderService;
+import com.rage.ecommerce.domain.port.out.repository.CustomerRepository;
+import com.rage.ecommerce.domain.port.out.repository.ItemRepository;
 import com.rage.ecommerce.domain.port.out.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final StateMachineFactory<OrderState, OrderEvent> stateMachineFactory;
     private final OrderMapper orderMapper;
+    private final CustomerRepository customerRepository;
+    private final ItemRepository itemRepository;
 
     @Transactional
     @Override
@@ -70,9 +76,17 @@ public class OrderServiceImpl implements OrderService {
 
         var response = saveState(stateMachine, order);
         var dtoResponse = orderMapper.toCheckOrderResponseDTO(response);
+        var customer = customerRepository.findByCustomerId(dtoResponse.getCustomerId()).orElseThrow(
+                () -> new RuntimeException("Customer not found with id in checkOffer: " + orderId));
+        var item = itemRepository.findByItemId(dtoResponse.getItemId()).orElseThrow(
+                () -> new RuntimeException("Item not found with id in checkOffer: " + orderId));
 
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
-        return orderMapper.toCheckOrderResponseDTO(order);
+        dtoResponse.setSubscription(customer.getSubscription());
+        dtoResponse.setDateOfBirth(customer.getDateOfBirth());
+        dtoResponse.setItemOfferLevel(item.getItemOfferLevel());
+
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
+        return dtoResponse;
     }
 
 
@@ -170,6 +184,8 @@ public class OrderServiceImpl implements OrderService {
 
     private <T> void sendProducerMessage(String className, T message, UUID processId) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         String serialisedResponse = objectMapper.writeValueAsString(message);
         String serialisedProcessId = processId.toString();
 
