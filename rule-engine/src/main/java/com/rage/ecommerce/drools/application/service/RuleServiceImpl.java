@@ -2,6 +2,7 @@ package com.rage.ecommerce.drools.application.service;
 
 import com.rage.ecommerce.drools.application.dto.ApplyOfferRequestDTO;
 import com.rage.ecommerce.drools.application.mapper.OfferMapper;
+import com.rage.ecommerce.drools.domain.model.Decision;
 import com.rage.ecommerce.drools.domain.model.Offer;
 import com.rage.ecommerce.drools.domain.model.enums.CustomerSubscription;
 import com.rage.ecommerce.drools.domain.port.in.RuleService;
@@ -27,7 +28,8 @@ public class RuleServiceImpl implements RuleService {
         log.info("Handling ApplyOfferRequestDTO. Key: {}, Message: {}", key, dto);
         var offer = offerMapper.toOffer(dto);
         CustomerSubscription subscription = determineSubscription(offer);
-        executeRules(offer, subscription);
+        var decision = executeRules(offer, subscription);
+        decision.toString();
     }
     private CustomerSubscription determineSubscription(Offer dto) {
         var subscription = dto.getSubscription();
@@ -37,20 +39,39 @@ public class RuleServiceImpl implements RuleService {
         };
     }
 
-    public void executeRules(Object fact, CustomerSubscription subscription) {
+    public Decision executeRules(Object fact, CustomerSubscription subscription) {
         String sessionName = subscription == CustomerSubscription.PREMIUM
                 ? PREMIUM_SESSION_NAME
                 : STANDARD_SESSION_NAME;
 
         log.info("Executing rules using session: {}", sessionName);
 
+        Decision finalDecision = null;
+
         KieSession kieSession = kieContainer.newKieSession(sessionName);
         try {
             kieSession.insert(fact);
             kieSession.fireAllRules();
+
+            java.util.Collection<?> objects = kieSession.getObjects(o -> o instanceof com.rage.ecommerce.drools.domain.model.Decision);
+
+            if (!objects.isEmpty()) {
+                // Assuming only one Decision object is expected per rule execution
+                finalDecision = (com.rage.ecommerce.drools.domain.model.Decision) objects.iterator().next();
+                log.info("Retrieved Decision: OfferRate={}, Reason={}", finalDecision.getOfferRate(), finalDecision.getReason());
+            } else {
+                finalDecision = Decision.builder()
+                        .offerRate(0.0)
+                        .reason("No rule matched")
+                        .build();
+                log.info("No Decision object was inserted by the rules.");
+            }
+
         } finally {
             kieSession.dispose();
         }
+
+        return finalDecision;
     }
 
     // For backward compatibility

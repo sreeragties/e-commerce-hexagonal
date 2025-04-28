@@ -2,10 +2,22 @@ package com.rage.ecommerce.drools.rules.standard
 
 import com.rage.ecommerce.drools.domain.model.Offer;
 import com.rage.ecommerce.drools.domain.model.enums.CustomerSubscription;
+import com.rage.ecommerce.drools.domain.model.Decision;
+import java.time.LocalDate;
+import java.time.Period;
 
 rule "StandardRule01"
 when
-    $offer : Offer(getSubscription() == CustomerSubscription.STANDARD)
+    $offer : Offer(
+        getSubscription() == CustomerSubscription.STANDARD,
+        getDateOfBirth() != null,
+        $age : Period.between(getDateOfBirth(), LocalDate.now()).getYears()
+        )
+        eval( $age > 18 && $age < 30 )
 then
-    System.out.println("Standard Rule fired");
+    System.out.println("Standard Rule fired for customer with age between 18 and 30: " + $age);
+    Decision decision = new Decision();
+    decision.setOfferRate(15.0);
+    decision.setReason("15% offer can be applied as the customer has premium subscription, and is in between the ages of 18 and 30");
+    insert(decision);
 end
