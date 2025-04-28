@@ -24,3 +24,4 @@ spring:
 kafka:
   topic:
     name: e-commerce
+  group-id: order-processing-group-2
