@@ -11,4 +11,6 @@ public interface OfferMapper {
     ApplyOfferRequestDTO toApplyOfferRequestDTO(Offer offer);
 
     ApplyOfferRequestDTO toApplyOfferRequestDTOFromCheckOfferResponse(CheckOfferResponseDTO checkOfferResponseDTO);
+
+    Offer toOffer(ApplyOfferRequestDTO applyOfferRequestDTO);
 }

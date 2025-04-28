@@ -3,7 +3,7 @@ package com.rage.ecommerce.drools.infrastructure.adapter.in;
 import com.rage.ecommerce.drools.application.dto.ApplyOfferRequestDTO;
 import com.rage.ecommerce.drools.application.dto.CheckOfferResponseDTO;
 import com.rage.ecommerce.drools.application.mapper.OfferMapper;
-import com.rage.ecommerce.drools.application.service.RuleService;
+import com.rage.ecommerce.drools.application.service.RuleServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -19,7 +19,7 @@ public class KafkaMessageListener {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KafkaMessageListener.class);
 
-    private final RuleService ruleService;
+    private final RuleServiceImpl ruleService;
 
     private final OfferMapper offerMapper;
 

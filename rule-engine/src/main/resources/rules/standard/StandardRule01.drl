@@ -1,9 +1,11 @@
 package com.rage.ecommerce.drools.rules.standard
 
-import com.rage.ecommerce.drools.domain.model.Fact;
+import com.rage.ecommerce.drools.domain.model.Offer;
+import com.rage.ecommerce.drools.domain.model.enums.CustomerSubscription;
 
 rule "StandardRule01"
 when
+    $offer : Offer(getSubscription() == CustomerSubscription.STANDARD)
 then
     System.out.println("Standard Rule fired");
 end
