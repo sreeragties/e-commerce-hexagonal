@@ -1,0 +1,9 @@
+package com.rage.ecommerce.drools.rules.premium
+
+import com.rage.ecommerce.drools.domain.model.Fact;
+
+rule "PremiumRule01"
+when
+then
+    System.out.println("Premium Rule fired");
+end

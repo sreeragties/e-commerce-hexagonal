@@ -1,28 +1,100 @@
 package com.rage.ecommerce.drools.infrastructure.config;
 
+import org.drools.io.ClassPathResource;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieModule;
+import org.kie.api.builder.Message;
+import org.kie.api.builder.model.KieBaseModel;
+import org.kie.api.builder.model.KieModuleModel;
+import org.kie.api.builder.model.KieSessionModel;
+import org.kie.api.conf.EqualityBehaviorOption;
+import org.kie.api.conf.EventProcessingOption;
+import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
 import org.kie.internal.io.ResourceFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import java.io.IOException;
 
 @Configuration
 public class DroolsConfig {
 
+    private static final String STANDARD_RULES_PATH = "rules/standard/";
+    private static final String PREMIUM_RULES_PATH = "rules/premium/";
+    public static final String STANDARD_SESSION_NAME = "standardKieSession";
+    public static final String PREMIUM_SESSION_NAME = "premiumKieSession";
+
+    private static final String STANDARD_RULES_PACKAGE = "com.rage.ecommerce.drools.rules.standard";
+    private static final String PREMIUM_RULES_PACKAGE = "com.rage.ecommerce.drools.rules.premium";
+
     @Bean
     public KieContainer kieContainer() {
         KieServices kieServices = KieServices.Factory.get();
-        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
 
-        kieFileSystem.write(ResourceFactory.newClassPathResource("rules/sample.drl"));
+        KieModuleModel kieModuleModel = kieServices.newKieModuleModel();
+
+        KieBaseModel standardKieBaseModel = kieModuleModel.newKieBaseModel("standardKieBase")
+                .setDefault(true)
+                .setEqualsBehavior(EqualityBehaviorOption.EQUALITY)
+                .setEventProcessingMode(EventProcessingOption.STREAM)
+                .addPackage(STANDARD_RULES_PACKAGE);
+
+        standardKieBaseModel.newKieSessionModel(STANDARD_SESSION_NAME)
+                .setDefault(true)
+                .setType(KieSessionModel.KieSessionType.STATEFUL);
+
+        KieBaseModel premiumKieBaseModel = kieModuleModel.newKieBaseModel("premiumKieBase")
+                .setDefault(false)
+                .setEqualsBehavior(EqualityBehaviorOption.EQUALITY)
+                .setEventProcessingMode(EventProcessingOption.STREAM)
+                .addPackage(PREMIUM_RULES_PACKAGE);
+
+        premiumKieBaseModel.newKieSessionModel(PREMIUM_SESSION_NAME)
+                .setDefault(false)
+                .setType(KieSessionModel.KieSessionType.STATEFUL);
+
+        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        kieFileSystem.writeKModuleXML(kieModuleModel.toXML());
+
+        addRulesFromDirectory(kieFileSystem, kieServices, STANDARD_RULES_PATH, "standardKieBase");
+        addRulesFromDirectory(kieFileSystem, kieServices, PREMIUM_RULES_PATH, "premiumKieBase");
 
         KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem);
         kieBuilder.buildAll();
 
-        KieModule kieModule = kieBuilder.getKieModule();
-        return kieServices.newKieContainer(kieModule.getReleaseId());
+        if (kieBuilder.getResults().hasMessages(Message.Level.ERROR)) {
+            StringBuilder errors = new StringBuilder();
+            kieBuilder.getResults().getMessages(Message.Level.ERROR).forEach(
+                    message -> errors.append("Error: ").append(message.getText()).append("\n")
+            );
+            throw new RuntimeException("Build Errors:\n" + errors.toString());
+        }
+
+        return kieServices.newKieContainer(kieServices.getRepository().getDefaultReleaseId());
+    }
+
+    private void addRulesFromDirectory(KieFileSystem kieFileSystem, KieServices kieServices,
+                                       String directoryPath, String kieBaseName) {
+        try {
+            ClassPathResource baseResource = new ClassPathResource(directoryPath);
+            Resource[] resources = new PathMatchingResourcePatternResolver()
+                    .getResources("classpath:" + directoryPath + "*.drl");
+
+            for (Resource resource : resources) {
+                String path = resource.getURL().getPath();
+                String fileName = path.substring(path.lastIndexOf('/') + 1);
+                String fullPath = directoryPath + fileName;
+
+                kieFileSystem.write(ResourceFactory.newClassPathResource(fullPath, getClass())
+                        .setResourceType(ResourceType.DRL)
+                        .setSourcePath(fullPath));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error loading rule files from " + directoryPath, e);
+        }
     }
 }

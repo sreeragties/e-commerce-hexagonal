@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: Rule Engine
+  boot:
+    run:
+      jvmArguments: --add-opens java.base/java.util=ALL-UNNAMED
 
   kafka:
     bootstrap-servers: http://localhost:9092
