@@ -1,10 +1,11 @@
 package com.rage.ecommerce.drools.infrastructure.adapter.in;
 
 import com.rage.ecommerce.drools.application.dto.ApplyOfferRequestDTO;
+import com.rage.ecommerce.drools.application.dto.CheckOfferResponseDTO;
+import com.rage.ecommerce.drools.application.mapper.OfferMapper;
+import com.rage.ecommerce.drools.application.service.RuleService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.header.Header;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,8 +19,9 @@ public class KafkaMessageListener {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KafkaMessageListener.class);
 
-    @Autowired
-    private ApplyOfferRequestDTOHandler applyOfferRequestDTOHandler;
+    private final RuleService ruleService;
+
+    private final OfferMapper offerMapper;
 
     @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id}")
     public void listen(ConsumerRecord<String, String> record) {
@@ -27,23 +29,12 @@ public class KafkaMessageListener {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            ApplyOfferRequestDTO dto = objectMapper.readValue(record.value(), ApplyOfferRequestDTO.class);
-            applyOfferRequestDTOHandler.handle(dto, record.key());
+            var requestDto = objectMapper.readValue(record.value(), CheckOfferResponseDTO.class);
+            ApplyOfferRequestDTO dto = offerMapper.toApplyOfferRequestDTOFromCheckOfferResponse(requestDto);
+            ruleService.handleAndExecuteRules(dto, record.key());
         } catch (IOException e) {
             log.error("Error processing CheckOrderResponseDTO message: {}", e.getMessage());
         }
-    }
-
-    @Component
-    public static class ApplyOfferRequestDTOHandler implements MessageHandler<ApplyOfferRequestDTO> {
-        @Override
-        public void handle(ApplyOfferRequestDTO message, String key) {
-            log.info("Handling CheckOrderResponseDTO. Key: {}, Message: {}", key, message);
-        }
-    }
-
-    public interface MessageHandler<T> {
-        void handle(T message, String key);
     }
 }
 
