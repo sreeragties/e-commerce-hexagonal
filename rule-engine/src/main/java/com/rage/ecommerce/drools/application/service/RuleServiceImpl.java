@@ -12,6 +12,7 @@ import com.rage.ecommerce.drools.domain.model.Offer;
 import com.rage.ecommerce.drools.domain.model.enums.CustomerSubscription;
 import com.rage.ecommerce.drools.domain.port.in.RuleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
@@ -30,9 +31,8 @@ import static com.rage.ecommerce.drools.infrastructure.config.DroolsConfig.STAND
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RuleServiceImpl implements RuleService {
-
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RuleServiceImpl.class);
 
     private final KieContainer kieContainer;
 

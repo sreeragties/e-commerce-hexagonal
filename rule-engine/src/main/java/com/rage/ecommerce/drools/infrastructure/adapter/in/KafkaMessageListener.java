@@ -5,6 +5,7 @@ import com.rage.ecommerce.drools.application.dto.CheckOfferResponseDTO;
 import com.rage.ecommerce.drools.application.mapper.OfferMapper;
 import com.rage.ecommerce.drools.application.service.RuleServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -15,9 +16,8 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class KafkaMessageListener {
-
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KafkaMessageListener.class);
 
     private final RuleServiceImpl ruleService;
 
