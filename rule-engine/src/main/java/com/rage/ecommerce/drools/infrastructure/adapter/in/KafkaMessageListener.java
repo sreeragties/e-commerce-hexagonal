@@ -1,6 +1,6 @@
 package com.rage.ecommerce.drools.infrastructure.adapter.in;
 
-import com.rage.ecommerce.drools.application.dto.ApplyOfferRequestDTO;
+import com.rage.ecommerce.drools.application.dto.OfferEvaluationRequestDTO;
 import com.rage.ecommerce.drools.application.dto.CheckOfferResponseDTO;
 import com.rage.ecommerce.drools.application.mapper.OfferMapper;
 import com.rage.ecommerce.drools.application.service.RuleServiceImpl;
@@ -30,7 +30,7 @@ public class KafkaMessageListener {
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             var requestDto = objectMapper.readValue(record.value(), CheckOfferResponseDTO.class);
-            ApplyOfferRequestDTO dto = offerMapper.toApplyOfferRequestDTOFromCheckOfferResponse(requestDto);
+            OfferEvaluationRequestDTO dto = offerMapper.toApplyOfferRequestDTOFromCheckOfferResponse(requestDto);
             ruleService.handleAndExecuteRules(dto, record.key());
         } catch (IOException e) {
             log.error("Error processing CheckOrderResponseDTO message: {}", e.getMessage());

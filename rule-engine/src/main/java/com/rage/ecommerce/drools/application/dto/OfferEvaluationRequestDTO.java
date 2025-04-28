@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class ApplyOfferResponseDTO {
+public class OfferEvaluationRequestDTO {
 
     private UUID processId;
     private OrderState orderState;
@@ -20,6 +20,4 @@ public class ApplyOfferResponseDTO {
     private LocalDate dateOfBirth;
     private CustomerSubscription subscription;
     private ItemOfferLevel itemOfferLevel;
-    private Double offerRate;
-    private String reason;
 }

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rage.ecommerce.drools.application.dto.ApplyOfferRequestDTO;
-import com.rage.ecommerce.drools.application.dto.ApplyOfferResponseDTO;
+import com.rage.ecommerce.drools.application.dto.OfferEvaluationRequestDTO;
+import com.rage.ecommerce.drools.application.dto.OfferEvaluationResponseDTO;
 import com.rage.ecommerce.drools.application.mapper.OfferMapper;
 import com.rage.ecommerce.drools.domain.model.Decision;
 import com.rage.ecommerce.drools.domain.model.Offer;
@@ -42,12 +42,12 @@ public class RuleServiceImpl implements RuleService {
     private String topicName;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void handleAndExecuteRules(ApplyOfferRequestDTO dto, String key) throws JsonProcessingException {
+    public void handleAndExecuteRules(OfferEvaluationRequestDTO dto, String key) throws JsonProcessingException {
         log.info("Handling ApplyOfferRequestDTO. Key: {}, Message: {}", key, dto);
         var offer = offerMapper.toOffer(dto);
         CustomerSubscription subscription = determineSubscription(offer);
         var decision = executeRules(offer, subscription);
-        ApplyOfferResponseDTO response = ApplyOfferResponseDTO.builder()
+        OfferEvaluationResponseDTO response = OfferEvaluationResponseDTO.builder()
                 .processId(dto.getProcessId())
                 .orderState(dto.getOrderState())
                 .itemId(dto.getItemId())
