@@ -14,5 +14,8 @@ public class Order {
     private OrderState orderState;
     private UUID itemId;
     private UUID customerId;
+    private double calculatedPrice;
+    private Double offerRate;
+    private String reason;
 
 }

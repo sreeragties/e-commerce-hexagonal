@@ -1,9 +1,9 @@
-package com.rage.ecommerce.infrastructure.adapter.in;
+package com.rage.ecommerce.infrastructure.adapter.in.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.rage.ecommerce.application.dto.customer.CreateCustomerRequestDTO;
+import com.rage.ecommerce.application.dto.item.CreateItemRequestDTO;
 import com.rage.ecommerce.application.dto.order.ErrorResponseDTO;
-import com.rage.ecommerce.domain.port.in.CustomerService;
+import com.rage.ecommerce.domain.port.in.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class CustomerController {
+public class ItemController {
 
-    private final CustomerService customerService;
+    private final ItemService itemService;
 
-    @PostMapping("/customers/create")
-    public ResponseEntity<?> createCustomer(@RequestBody CreateCustomerRequestDTO createCustomerRequestDTO) throws JsonProcessingException {
-        var item = customerService.createCustomer(createCustomerRequestDTO);
+    @PostMapping("/items/create")
+    public ResponseEntity<?> createOrder(@RequestBody CreateItemRequestDTO createItemRequestDTO) throws JsonProcessingException {
+        var item = itemService.createItem(createItemRequestDTO);
         if (item != null) {
             return ResponseEntity.ok(item);
         } else {

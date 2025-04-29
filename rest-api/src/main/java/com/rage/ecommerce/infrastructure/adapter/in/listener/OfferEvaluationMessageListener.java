@@ -1,9 +1,11 @@
-package com.rage.ecommerce.infrastructure.adapter.in;
+package com.rage.ecommerce.infrastructure.adapter.in.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rage.ecommerce.application.dto.order.OfferEvaluationResponseDTO;
+import com.rage.ecommerce.application.mapper.OrderMapper;
+import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -17,6 +19,10 @@ import java.io.IOException;
 @Slf4j
 public class OfferEvaluationMessageListener {
 
+    private final OrderService orderService;
+
+    private final OrderMapper orderMapper;
+
     @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id}",
     containerFactory = "offerEvaluationResponseContainerFactory")
     public void listen(ConsumerRecord<String, String> record) {
@@ -25,6 +31,8 @@ public class OfferEvaluationMessageListener {
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             var requestDto = objectMapper.readValue(record.value(), OfferEvaluationResponseDTO.class);
+            var order = orderMapper.toDomain(requestDto);
+            orderService.applyOffer(order);
         } catch (IOException e) {
             log.error("Error processing CheckOrderResponseDTO message: {}", e.getMessage());
         }

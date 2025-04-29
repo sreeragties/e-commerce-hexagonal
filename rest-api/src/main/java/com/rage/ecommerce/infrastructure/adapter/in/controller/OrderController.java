@@ -1,4 +1,4 @@
-package com.rage.ecommerce.infrastructure.adapter.in;
+package com.rage.ecommerce.infrastructure.adapter.in.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
@@ -36,15 +36,6 @@ public class OrderController {
         } else {
             ErrorResponseDTO errorResponse = new ErrorResponseDTO("Failed to check order. Please try again.");
             return ResponseEntity.badRequest().body(errorResponse);
-        }
-    }
-
-    @PostMapping("/orders/{orderId}/apply-offer")
-    public ResponseEntity<String> applyOffer(@PathVariable UUID orderId) {
-        if (orderService.applyOffer(orderId)) {
-            return ResponseEntity.ok("Offer applied successfully, now in OFFER_APPLIED state.");
-        } else {
-            return ResponseEntity.badRequest().body("Failed to apply offer.");
         }
     }
 

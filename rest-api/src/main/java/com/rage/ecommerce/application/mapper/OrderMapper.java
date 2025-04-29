@@ -1,8 +1,6 @@
 package com.rage.ecommerce.application.mapper;
 
-import com.rage.ecommerce.application.dto.order.CheckOfferResponseDTO;
-import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
+import com.rage.ecommerce.application.dto.order.*;
 import com.rage.ecommerce.domain.model.Order;
 import com.rage.ecommerce.infrastructure.adapter.out.CustomerEntity;
 import com.rage.ecommerce.infrastructure.adapter.out.ItemEntity;
@@ -41,4 +39,8 @@ public interface OrderMapper {
     Order toDomain(CheckOfferResponseDTO dto);
 
     CheckOfferResponseDTO toCheckOrderResponseDTO(Order order);
+
+    Order toDomain(OfferEvaluationResponseDTO dto);
+
+    ApplyOfferResponseDTO toApplyOfferResponseDTO(Order order);
 }

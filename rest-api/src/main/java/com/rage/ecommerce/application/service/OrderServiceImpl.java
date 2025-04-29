@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rage.ecommerce.application.dto.order.CheckOfferResponseDTO;
-import com.rage.ecommerce.application.dto.order.CreateOrderRequestDTO;
-import com.rage.ecommerce.application.dto.order.CreateOrderResponseDTO;
+import com.rage.ecommerce.application.dto.order.*;
 import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
@@ -92,13 +90,19 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public boolean applyOffer(UUID orderId) {
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+    public void applyOffer(Order order) throws JsonProcessingException {
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
         sendEvent(stateMachine, OrderEvent.APPLY_OFFER);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-        saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.OFFER_APPLIED;
+        var item = itemRepository.findByItemId(order.getItemId()).orElseThrow(
+                () -> new RuntimeException("Item not found with id in checkOffer: " + order.getItemId()));
+        double offerRate = order.getOfferRate();
+        double calculatedPrice = item.getPrice() - item.getPrice()*offerRate/100;
+        order.setCalculatedPrice(calculatedPrice);
+        var response = saveState(stateMachine, order);
+
+        var dtoResponse = orderMapper.toApplyOfferResponseDTO(response);
+
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
     }
 
     @Transactional

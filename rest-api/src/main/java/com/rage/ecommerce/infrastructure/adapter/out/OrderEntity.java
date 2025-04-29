@@ -30,4 +30,13 @@ public class OrderEntity {
     @ManyToOne
     @JoinColumn(name = "customer_id", referencedColumnName = "customer_id")
     private CustomerEntity customer;
+
+    @Column(name = "calculated_price")
+    private double calculatedPrice;
+
+    @Column(name = "offer_reason")
+    private String reason;
+
+    @Column(name = "offer_rate")
+    private Double offerRate;
 }
