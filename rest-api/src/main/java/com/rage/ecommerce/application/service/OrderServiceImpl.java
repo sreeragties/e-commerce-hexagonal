@@ -8,13 +8,17 @@ import com.rage.ecommerce.application.dto.order.*;
 import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.enums.OrderEvent;
 import com.rage.ecommerce.domain.enums.OrderState;
+import com.rage.ecommerce.domain.exception.ResourceNotFoundException;
+import com.rage.ecommerce.domain.exception.ServiceException;
 import com.rage.ecommerce.domain.model.Order;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import com.rage.ecommerce.domain.port.out.repository.CustomerRepository;
 import com.rage.ecommerce.domain.port.out.repository.ItemRepository;
 import com.rage.ecommerce.domain.port.out.repository.OrderRepository;
+import com.rage.ecommerce.infrastructure.exception.BadRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
@@ -35,6 +39,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     @Value(value = "${kafka.topic.name}")
@@ -49,13 +54,22 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public CreateOrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
+        if (createOrderRequestDTO == null) {
+            throw new BadRequestException("Order request cannot be null");
+        }
         Order order = orderMapper.toDomain(createOrderRequestDTO);
+        if (order == null) {
+            throw new ServiceException("Failed to map order request to domain object");
+        }
         order.setOrderState(OrderState.CREATED);
 
         var response = orderRepository.save(order);
         var dtoResponse = orderMapper.toCreateOrderResponseDTO(response);
-
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+        try {
+            sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+        } catch (Exception e) {
+            log.error("Order created successfully but failed to send message: {}", e.getMessage());
+        }
         return orderMapper.toCreateOrderResponseDTO(response);
     }
 
@@ -67,23 +81,35 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public CheckOfferResponseDTO checkOffer(UUID orderId) throws JsonProcessingException {
+        if (orderId == null) {
+            throw new BadRequestException("orderId cannot be null");
+        }
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
         var response = saveState(stateMachine, order);
         var dtoResponse = orderMapper.toCheckOrderResponseDTO(response);
+
+        if (dtoResponse == null) {
+            throw new ServiceException("Failed to map order request to domain object");
+        }
+
         var customer = customerRepository.findByCustomerId(dtoResponse.getCustomerId()).orElseThrow(
-                () -> new RuntimeException("Customer not found with id in checkOffer: " + orderId));
+                () -> new ResourceNotFoundException("Customer not found with id in checkOffer: " + orderId));
         var item = itemRepository.findByItemId(dtoResponse.getItemId()).orElseThrow(
-                () -> new RuntimeException("Item not found with id in checkOffer: " + orderId));
+                () -> new ResourceNotFoundException("Item not found with id in checkOffer: " + orderId));
 
         dtoResponse.setSubscription(customer.getSubscription());
         dtoResponse.setDateOfBirth(customer.getDateOfBirth());
         dtoResponse.setItemOfferLevel(item.getItemOfferLevel());
 
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
+        try {
+            sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
+        } catch (Exception e) {
+            log.error("Order checked successfully but failed to send message: {}", e.getMessage());
+        }
         return dtoResponse;
     }
 
