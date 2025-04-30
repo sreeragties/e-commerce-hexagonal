@@ -3,7 +3,6 @@ package com.rage.ecommerce.domain.port.in;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rage.ecommerce.application.dto.order.*;
 import com.rage.ecommerce.domain.model.Order;
-import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;

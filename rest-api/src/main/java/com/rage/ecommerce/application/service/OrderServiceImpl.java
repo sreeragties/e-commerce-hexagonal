@@ -27,9 +27,13 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
+import org.springframework.statemachine.StateMachineContext;
+import org.springframework.statemachine.StateMachineEventResult;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -230,17 +234,21 @@ public class OrderServiceImpl implements OrderService {
 
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException(ORDER_NOT_FOUND_LITERAL + orderId));
+
         StateMachine<OrderState, OrderEvent> sm = stateMachineFactory.getStateMachine(order.getProcessId().toString());
-        sm.startReactively().block(); // Start the state machine if it's not already running
-        sm.getStateMachineAccessor()
-                .doWithAllRegions(sma -> sma.resetStateMachine(new DefaultStateMachineContext<>(order.getOrderState(), null, null, null)));
+        sm.startReactively().block();
+
         return sm;
     }
 
     private void sendEvent(StateMachine<OrderState, OrderEvent> stateMachine, OrderEvent event) {
         Message<OrderEvent> message = MessageBuilder.withPayload(event).build();
-        stateMachine.sendEvent(message);
+        Flux<StateMachineEventResult<OrderState, OrderEvent>> resultFlux = stateMachine.sendEvent(Mono.just(message));
+        resultFlux
+                .doOnComplete(() -> log.debug("Event {} sent to state machine for order {}", event, stateMachine.getId()))
+                .doOnError(e -> log.error("Failed to send event {} to state machine for order {}: {}", event, stateMachine.getId(), e.getMessage()))
+                .subscribe();
     }
 
     private Order saveState(StateMachine<OrderState, OrderEvent> stateMachine, Order order) {
