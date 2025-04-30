@@ -8,6 +8,7 @@ class EcommerceHexagonalApplicationTests {
 
 	@Test
 	void contextLoads() {
+		// No tests are implemented
 	}
 
 }

@@ -25,12 +25,12 @@ public class OfferEvaluationMessageListener {
 
     @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id}",
     containerFactory = "offerEvaluationResponseContainerFactory")
-    public void listen(ConsumerRecord<String, String> record) {
+    public void listen(ConsumerRecord<String, String> consumerRecord) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            var requestDto = objectMapper.readValue(record.value(), OfferEvaluationResponseDTO.class);
+            var requestDto = objectMapper.readValue(consumerRecord.value(), OfferEvaluationResponseDTO.class);
             var order = orderMapper.toDomain(requestDto);
             orderService.applyOffer(order);
         } catch (IOException e) {

@@ -51,6 +51,8 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerRepository customerRepository;
     private final ItemRepository itemRepository;
 
+    private static final String ORDER_NOT_FOUND_LITERAL = "Order not found with id: ";
+
     @Transactional
     @Override
     public CreateOrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
@@ -87,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new ResourceNotFoundException(ORDER_NOT_FOUND_LITERAL + orderId));
 
         var response = saveState(stateMachine, order);
         var dtoResponse = orderMapper.toCheckOrderResponseDTO(response);
@@ -137,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CANCEL_OFFER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
     }
@@ -148,7 +150,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.PLACE_ORDER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.PAYMENT_PENDING;
     }
@@ -160,7 +162,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.MAKE_PAYMENT);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         if (paymentSuccessful) {
             sendEvent(stateMachine, OrderEvent.PAYMENT_SUCCESS);
         }
@@ -174,7 +176,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.SHIP_ORDER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.SHIPPED;
     }
@@ -185,7 +187,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.DELIVER_ORDER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.DELIVERED;
     }
@@ -196,7 +198,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.RETURN_ORDER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.RETURNED;
     }
@@ -207,7 +209,7 @@ public class OrderServiceImpl implements OrderService {
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.CANCEL_ORDER);
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         saveState(stateMachine, order);
         return stateMachine.getState().getId() == OrderState.CANCELLED;
     }
@@ -222,13 +224,13 @@ public class OrderServiceImpl implements OrderService {
         List<Header> headers = new ArrayList<>();
         headers.add(new RecordHeader("DTOClassName", className.getBytes()));
 
-        ProducerRecord<String, String> record = new ProducerRecord <>(topicName, null, serialisedProcessId, serialisedResponse, headers);
-        kafkaTemplate.send(record);
+        ProducerRecord<String, String> producerRecord = new ProducerRecord <>(topicName, null, serialisedProcessId, serialisedResponse, headers);
+        kafkaTemplate.send(producerRecord);
     }
 
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         StateMachine<OrderState, OrderEvent> sm = stateMachineFactory.getStateMachine(order.getProcessId().toString());
         sm.startReactively().block(); // Start the state machine if it's not already running
         sm.getStateMachineAccessor()

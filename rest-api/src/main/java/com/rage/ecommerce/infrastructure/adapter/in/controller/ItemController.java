@@ -2,6 +2,7 @@ package com.rage.ecommerce.infrastructure.adapter.in.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rage.ecommerce.application.dto.item.CreateItemRequestDTO;
+import com.rage.ecommerce.application.dto.item.CreateItemResponseDTO;
 import com.rage.ecommerce.application.dto.order.ErrorResponseDTO;
 import com.rage.ecommerce.domain.port.in.ItemService;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +19,8 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping("/items/create")
-    public ResponseEntity<?> createOrder(@RequestBody CreateItemRequestDTO createItemRequestDTO) throws JsonProcessingException {
+    public ResponseEntity<CreateItemResponseDTO> createItem(@RequestBody CreateItemRequestDTO createItemRequestDTO) throws JsonProcessingException {
         var item = itemService.createItem(createItemRequestDTO);
-        if (item != null) {
-            return ResponseEntity.ok(item);
-        } else {
-            ErrorResponseDTO errorResponse = new ErrorResponseDTO("Failed to create item. Please try again.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        return ResponseEntity.ok(item);
     }
 }

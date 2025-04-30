@@ -41,8 +41,8 @@ public class KafkaConsumerConfig {
     private ConcurrentKafkaListenerContainerFactory<String, String> createContainerFactory(String expectedDtoClassName) {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setRecordFilterStrategy(record -> {
-            String dtoClassName = getDtoClassName(record.headers().toArray());
+        factory.setRecordFilterStrategy(recordItem -> {
+            String dtoClassName = getDtoClassName(recordItem.headers().toArray());
             return !expectedDtoClassName.equals(dtoClassName);
         });
         return factory;

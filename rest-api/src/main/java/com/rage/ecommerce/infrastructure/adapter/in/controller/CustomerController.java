@@ -2,6 +2,7 @@ package com.rage.ecommerce.infrastructure.adapter.in.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rage.ecommerce.application.dto.customer.CreateCustomerRequestDTO;
+import com.rage.ecommerce.application.dto.customer.CreateCustomerResponseDTO;
 import com.rage.ecommerce.application.dto.order.ErrorResponseDTO;
 import com.rage.ecommerce.domain.port.in.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +19,8 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping("/customers/create")
-    public ResponseEntity<?> createCustomer(@RequestBody CreateCustomerRequestDTO createCustomerRequestDTO) throws JsonProcessingException {
+    public ResponseEntity<CreateCustomerResponseDTO> createCustomer(@RequestBody CreateCustomerRequestDTO createCustomerRequestDTO) throws JsonProcessingException {
         var item = customerService.createCustomer(createCustomerRequestDTO);
-        if (item != null) {
-            return ResponseEntity.ok(item);
-        } else {
-            ErrorResponseDTO errorResponse = new ErrorResponseDTO("Failed to create item. Please try again.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
+        return ResponseEntity.ok(item);
     }
 }
