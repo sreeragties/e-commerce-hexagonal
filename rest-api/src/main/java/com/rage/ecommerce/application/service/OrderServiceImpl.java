@@ -167,25 +167,44 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void makePayment(Order order) throws JsonProcessingException {
-        var existingOrderEntry = orderRepository.findById(order.getProcessId())
-                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + order.getProcessId()));
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
+    public void makePayment(MakePaymentRequestDTO makePaymentRequestDTO) throws JsonProcessingException {
+        var orderId = makePaymentRequestDTO.getProcessId();
+        var existingOrderEntry = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
         sendEvent(stateMachine, OrderEvent.MAKE_PAYMENT);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toMakePaymentResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
     }
 
+    @Override
+    public void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO) throws JsonProcessingException {
+        var orderId = generatedPaymentStatusRequestDTO.getProcessId();
+        var existingOrderEntry = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+
+        existingOrderEntry.setPaymentStatus(generatedPaymentStatusRequestDTO.getPaymentStatus());
+        sendEvent(stateMachine, OrderEvent.PAYMENT_SUCCESS);
+        var response = saveState(stateMachine, existingOrderEntry);
+        var dtoResponse = orderMapper.toGeneratedPaymentStatusRequestDTO(response);
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+    }
+
     @Transactional
     @Override
-    public boolean shipOrder(UUID orderId) {
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
-        sendEvent(stateMachine, OrderEvent.SHIP_ORDER);
-        Order order = orderRepository.findById(orderId)
+    public void shipOrder(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO) throws JsonProcessingException {
+        var orderId = generatedPaymentStatusRequestDTO.getProcessId();
+        var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
-        saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.SHIPPED;
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+
+        existingOrderEntry.setPaymentStatus(generatedPaymentStatusRequestDTO.getPaymentStatus());
+        sendEvent(stateMachine, OrderEvent.SHIP_ORDER);
+        var response = saveState(stateMachine, existingOrderEntry);
+        var dtoResponse = orderMapper.toGeneratedPaymentStatusRequestDTO(response);
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
     }
 
     @Transactional

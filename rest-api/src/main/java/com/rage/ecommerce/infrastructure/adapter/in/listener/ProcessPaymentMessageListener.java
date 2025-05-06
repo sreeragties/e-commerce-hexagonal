@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rage.ecommerce.application.dto.order.ApplyOfferResponseDTO;
-import com.rage.ecommerce.application.dto.order.MakePaymentRequestDTO;
-import com.rage.ecommerce.application.dto.order.OfferEvaluationResponseDTO;
+import com.rage.ecommerce.application.dto.order.GeneratedPaymentStatusRequestDTO;
 import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -20,22 +18,20 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ApplyOfferMessageListener {
+public class ProcessPaymentMessageListener {
 
     private final OrderService orderService;
 
-    private final OrderMapper orderMapper;
-
-    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.apply-offer}",
-    containerFactory = "applyOfferResponseContainerFactory")
+    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.process-payment}",
+    containerFactory = "processPaymentResponseContainerFactory")
     public void listen(ConsumerRecord<String, String> consumerRecord) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            var requestDto = objectMapper.readValue(consumerRecord.value(), MakePaymentRequestDTO.class);
-            orderService.makePayment(requestDto);
+            var requestDto = objectMapper.readValue(consumerRecord.value(), GeneratedPaymentStatusRequestDTO.class);
+            orderService.processPayment(requestDto);
         } catch (IOException e) {
             log.error("Error processing ApplyOrderResponseDTO message: {}", e.getMessage());
         }

@@ -51,4 +51,6 @@ public interface OrderMapper {
     Order toDomain(MakePaymentResponseDTO dto);
 
     MakePaymentResponseDTO toMakePaymentResponseDTO(Order order);
+
+    GeneratedPaymentStatusRequestDTO toGeneratedPaymentStatusRequestDTO(Order order);
 }

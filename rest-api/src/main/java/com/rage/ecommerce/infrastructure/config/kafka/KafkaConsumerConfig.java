@@ -32,6 +32,9 @@ public class KafkaConsumerConfig {
     @Value("${kafka.group-id.apply-offer}")
     private String applyOfferGroupId;
 
+    @Value("${kafka.group-id.process-payment}")
+    private String processPaymentGroupId;
+
     private Map<String, Object> commonProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
@@ -60,6 +63,13 @@ public class KafkaConsumerConfig {
     public ConsumerFactory<String, String> applyConsumerFactory() {
         Map<String, Object> props = commonProps();
         props.put(ConsumerConfig.GROUP_ID_CONFIG, applyOfferGroupId);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConsumerFactory<String, String> processPaymentConsumerFactory() {
+        Map<String, Object> props = commonProps();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, processPaymentGroupId);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -101,6 +111,11 @@ public class KafkaConsumerConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> applyOfferResponseContainerFactory() {
         return createContainerFactory(applyConsumerFactory(), "ApplyOfferResponseDTO");
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> processPaymentResponseContainerFactory() {
+        return createContainerFactory(processPaymentConsumerFactory(), "ProcessPaymentResponseDTO");
     }
 }
 
