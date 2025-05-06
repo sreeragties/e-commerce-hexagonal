@@ -19,7 +19,7 @@ public interface OrderService {
 
     boolean cancelOffer(UUID orderId);
     boolean placeOrder(UUID orderId);
-    boolean makePayment(UUID orderId, boolean paymentSuccessful);
+    void makePayment(Order order) throws JsonProcessingException;
     boolean shipOrder(UUID orderId);
     boolean deliverOrder(UUID orderId);
     boolean cancelOrder(UUID orderId);

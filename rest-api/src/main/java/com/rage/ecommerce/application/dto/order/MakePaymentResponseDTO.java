@@ -15,7 +15,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApplyOfferResponseDTO {
+public class MakePaymentResponseDTO {
 
     private UUID processId;
     private OrderState orderState;

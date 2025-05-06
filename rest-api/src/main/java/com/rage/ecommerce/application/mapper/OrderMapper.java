@@ -42,5 +42,11 @@ public interface OrderMapper {
 
     Order toDomain(OfferEvaluationResponseDTO dto);
 
+    Order toDomain(ApplyOfferResponseDTO dto);
+
     ApplyOfferResponseDTO toApplyOfferResponseDTO(Order order);
+
+    Order toDomain(MakePaymentResponseDTO dto);
+
+    MakePaymentResponseDTO toMakePaymentResponseDTO(Order order);
 }

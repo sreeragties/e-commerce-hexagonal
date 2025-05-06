@@ -24,4 +24,6 @@ spring:
 kafka:
   topic:
     name: e-commerce
-  group-id: order-processing-group-2
+  group-id:
+    offer: ecommerce-offer-group
+    apply-offer: ecommerce-apply-group

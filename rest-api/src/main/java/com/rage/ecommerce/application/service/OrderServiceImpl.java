@@ -162,16 +162,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public boolean makePayment(UUID orderId, boolean paymentSuccessful) {
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+    public void makePayment(Order order) throws JsonProcessingException {
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
         sendEvent(stateMachine, OrderEvent.MAKE_PAYMENT);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
-        if (paymentSuccessful) {
-            sendEvent(stateMachine, OrderEvent.PAYMENT_SUCCESS);
-        }
-        saveState(stateMachine, order);
-        return stateMachine.getState().getId() == OrderState.PAYMENT_APPROVED || stateMachine.getState().getId() == OrderState.PAYMENT_REJECTED;
+        var response = saveState(stateMachine, order);
+        var dtoResponse = orderMapper.toMakePaymentResponseDTO(response);
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
     }
 
     @Transactional

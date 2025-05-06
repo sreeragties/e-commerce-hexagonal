@@ -3,6 +3,7 @@ package com.rage.ecommerce.infrastructure.adapter.in.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.rage.ecommerce.application.dto.order.ApplyOfferResponseDTO;
 import com.rage.ecommerce.application.dto.order.OfferEvaluationResponseDTO;
 import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.port.in.OrderService;
@@ -17,25 +18,24 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class OfferEvaluationMessageListener {
+public class ApplyOfferMessageListener {
 
     private final OrderService orderService;
 
     private final OrderMapper orderMapper;
 
-    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.offer}",
-    containerFactory = "offerEvaluationResponseContainerFactory")
+    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.apply-offer}",
+    containerFactory = "applyOfferResponseContainerFactory")
     public void listen(ConsumerRecord<String, String> consumerRecord) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            var requestDto = objectMapper.readValue(consumerRecord.value(), OfferEvaluationResponseDTO.class);
+            var requestDto = objectMapper.readValue(consumerRecord.value(), ApplyOfferResponseDTO.class);
             var order = orderMapper.toDomain(requestDto);
-            orderService.applyOffer(order);
+            orderService.makePayment(order);
         } catch (IOException e) {
             log.error("Error processing CheckOrderResponseDTO message: {}", e.getMessage());
         }
     }
 }
-
