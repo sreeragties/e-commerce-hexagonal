@@ -1,6 +1,7 @@
 package com.rage.ecommerce.domain.model;
 
 import com.rage.ecommerce.domain.enums.OrderState;
+import com.rage.ecommerce.domain.enums.PaymentStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,5 +18,6 @@ public class Order {
     private double calculatedPrice;
     private Double offerRate;
     private String reason;
+    private PaymentStatus paymentStatus;
 
 }

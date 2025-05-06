@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rage.ecommerce.payment.application.dto.ProcessPaymentRequestDTO;
 import com.rage.ecommerce.payment.application.mapper.PaymentMapper;
+import com.rage.ecommerce.payment.domain.enums.PaymentStatus;
 import com.rage.ecommerce.payment.domain.port.in.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         log.info("Handling ApplyOfferRequestDTO. Key: {}, Message: {}", key, dto);
         var response = paymentMapper.toProcessPaymentResponseDTO(dto);
+        response.setPaymentStatus(PaymentStatus.SUCCESS);
 
         sendProducerMessage(response.getClass().getSimpleName(), response, dto.getProcessId());
     }

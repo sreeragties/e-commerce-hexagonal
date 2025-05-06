@@ -2,6 +2,7 @@ package com.rage.ecommerce.infrastructure.adapter.out;
 
 
 import com.rage.ecommerce.domain.enums.OrderState;
+import com.rage.ecommerce.domain.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,4 +40,8 @@ public class OrderEntity {
 
     @Column(name = "offer_rate")
     private Double offerRate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
+    private PaymentStatus paymentStatus;
 }
