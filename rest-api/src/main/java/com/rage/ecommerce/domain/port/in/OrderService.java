@@ -13,7 +13,7 @@ public interface OrderService {
 
     Optional<Order> getOrderById(UUID orderId);
 
-    void checkOffer(Order order) throws JsonProcessingException;
+    void checkOffer(UUID processId) throws JsonProcessingException;
 
     void applyOffer(Order order) throws JsonProcessingException;
 

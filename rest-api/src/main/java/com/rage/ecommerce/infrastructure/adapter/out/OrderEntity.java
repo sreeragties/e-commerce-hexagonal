@@ -6,6 +6,8 @@ import com.rage.ecommerce.domain.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -44,4 +46,7 @@ public class OrderEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus;
+
+    @Column(name = "request_created_date")
+    private Instant requestCreatedDate;
 }

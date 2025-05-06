@@ -5,6 +5,7 @@ import com.rage.ecommerce.domain.enums.PaymentStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -19,5 +20,6 @@ public class Order {
     private Double offerRate;
     private String reason;
     private PaymentStatus paymentStatus;
+    private Instant requestCreatedDate;
 
 }

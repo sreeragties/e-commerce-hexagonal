@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,6 +68,7 @@ public class OrderServiceImpl implements OrderService {
             throw new ServiceException("Failed to map order request to domain object");
         }
         order.setOrderState(OrderState.CREATED);
+        order.setRequestCreatedDate(Instant.now());
 
         var response = orderRepository.save(order);
         var dtoResponse = orderMapper.toCreateOrderResponseDTO(response);
@@ -85,9 +87,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void checkOffer(Order order) throws JsonProcessingException {
-        var processId = order.getProcessId();
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
+    public void checkOffer(UUID processId) throws JsonProcessingException {
+        Order order = orderRepository.findById(processId)
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + processId));
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(processId);
         sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
 
         var response = saveState(stateMachine, order);
@@ -121,11 +124,17 @@ public class OrderServiceImpl implements OrderService {
                 () -> new RuntimeException("Item not found with id in checkOffer: " + order.getItemId()));
         double offerRate = order.getOfferRate();
         double calculatedPrice = item.getPrice() - item.getPrice()*offerRate/100;
-        order.setCalculatedPrice(calculatedPrice);
+
+        var existingOrderEntry = orderRepository.findById(order.getProcessId())
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + order.getProcessId()));
+
+        existingOrderEntry.setCalculatedPrice(calculatedPrice);
+        existingOrderEntry.setReason(order.getReason());
+        existingOrderEntry.setOfferRate(order.getOfferRate());
 
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
         sendEvent(stateMachine, OrderEvent.APPLY_OFFER);
-        var response = saveState(stateMachine, order);
+        var response = saveState(stateMachine, existingOrderEntry);
 
         var dtoResponse = orderMapper.toApplyOfferResponseDTO(response);
 
@@ -158,9 +167,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public void makePayment(Order order) throws JsonProcessingException {
+        var existingOrderEntry = orderRepository.findById(order.getProcessId())
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + order.getProcessId()));
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
         sendEvent(stateMachine, OrderEvent.MAKE_PAYMENT);
-        var response = saveState(stateMachine, order);
+        var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toMakePaymentResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
     }

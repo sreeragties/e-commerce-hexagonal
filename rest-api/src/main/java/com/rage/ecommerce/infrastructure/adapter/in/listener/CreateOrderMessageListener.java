@@ -34,7 +34,7 @@ public class CreateOrderMessageListener {
             objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
             var requestDto = objectMapper.readValue(consumerRecord.value(), CreateOrderResponseDTO.class);
             var order = orderMapper.toDomain(requestDto);
-            orderService.checkOffer(order);
+            orderService.checkOffer(order.getProcessId());
         } catch (IOException e) {
             log.error("Error processing CheckOfferResponseDTO message: {}", e.getMessage());
         }
