@@ -25,5 +25,7 @@ kafka:
   topic:
     name: e-commerce
   group-id:
-    offer: ecommerce-offer-group
+    create-order: ecommerce-create-order-group
+    check-offer: ecommerce-check-offer-group
+    evaluate-offer: ecommerce-evaluate-offer-group
     apply-offer: ecommerce-apply-group

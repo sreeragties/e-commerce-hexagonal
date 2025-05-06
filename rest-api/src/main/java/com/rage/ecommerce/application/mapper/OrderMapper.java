@@ -26,6 +26,8 @@ public interface OrderMapper {
 
     CreateOrderResponseDTO toCreateOrderResponseDTO(Order order);
 
+    Order toDomain(CreateOrderResponseDTO dto);
+
     @Named("mapItemIdToEntity")
     static ItemEntity mapItemIdToEntity(UUID itemId) {
         return ItemEntity.builder().itemId(itemId).build();

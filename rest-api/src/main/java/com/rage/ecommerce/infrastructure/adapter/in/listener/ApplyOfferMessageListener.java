@@ -35,7 +35,7 @@ public class ApplyOfferMessageListener {
             var order = orderMapper.toDomain(requestDto);
             orderService.makePayment(order);
         } catch (IOException e) {
-            log.error("Error processing CheckOrderResponseDTO message: {}", e.getMessage());
+            log.error("Error processing ApplyOrderResponseDTO message: {}", e.getMessage());
         }
     }
 }

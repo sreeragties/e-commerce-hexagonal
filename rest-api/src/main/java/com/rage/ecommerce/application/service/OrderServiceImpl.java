@@ -27,10 +27,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.StateMachineContext;
 import org.springframework.statemachine.StateMachineEventResult;
 import org.springframework.statemachine.config.StateMachineFactory;
-import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -86,14 +84,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public CheckOfferResponseDTO checkOffer(UUID orderId) throws JsonProcessingException {
-        if (orderId == null) {
-            throw new BadRequestException("orderId cannot be null");
-        }
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
+    public void checkOffer(Order order) throws JsonProcessingException {
+        var processId = order.getProcessId();
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
         sendEvent(stateMachine, OrderEvent.CHECK_OFFER);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException(ORDER_NOT_FOUND_LITERAL + orderId));
 
         var response = saveState(stateMachine, order);
         var dtoResponse = orderMapper.toCheckOrderResponseDTO(response);
@@ -103,9 +97,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         var customer = customerRepository.findByCustomerId(dtoResponse.getCustomerId()).orElseThrow(
-                () -> new ResourceNotFoundException("Customer not found with id in checkOffer: " + orderId));
+                () -> new ResourceNotFoundException("Customer not found with id in checkOffer: " + processId));
         var item = itemRepository.findByItemId(dtoResponse.getItemId()).orElseThrow(
-                () -> new ResourceNotFoundException("Item not found with id in checkOffer: " + orderId));
+                () -> new ResourceNotFoundException("Item not found with id in checkOffer: " + processId));
 
         dtoResponse.setSubscription(customer.getSubscription());
         dtoResponse.setDateOfBirth(customer.getDateOfBirth());
@@ -116,7 +110,6 @@ public class OrderServiceImpl implements OrderService {
         } catch (Exception e) {
             log.error("Order checked successfully but failed to send message: {}", e.getMessage());
         }
-        return dtoResponse;
     }
 
 

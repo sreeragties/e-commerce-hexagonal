@@ -2,7 +2,6 @@ package com.rage.ecommerce.infrastructure.config.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +23,11 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
-    @Value("${kafka.group-id.offer}")
-    private String offerGroupId;
+    @Value("${kafka.group-id.create-order}")
+    private String createOrderGroupId;
+
+    @Value("${kafka.group-id.evaluate-offer}")
+    private String evaluateOfferGroupId;
 
     @Value("${kafka.group-id.apply-offer}")
     private String applyOfferGroupId;
@@ -41,9 +43,16 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
+    public ConsumerFactory<String, String> createOrderConsumerFactory() {
+        Map<String, Object> props = commonProps();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, createOrderGroupId);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
     public ConsumerFactory<String, String> offerConsumerFactory() {
         Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, offerGroupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, evaluateOfferGroupId);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -77,6 +86,11 @@ public class KafkaConsumerConfig {
             }
         }
         return null;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> createOrderResponseContainerFactory() {
+        return createContainerFactory(createOrderConsumerFactory(), "CreateOrderResponseDTO");
     }
 
     @Bean
