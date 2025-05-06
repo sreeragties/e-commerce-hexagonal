@@ -18,13 +18,7 @@ import java.util.UUID;
 public class ProcessPaymentResponsetDTO {
 
     private UUID processId;
-    private OrderState orderState;
     private UUID itemId;
     private UUID customerId;
-    private LocalDate dateOfBirth;
-    private CustomerSubscription subscription;
-    private ItemOfferLevel itemOfferLevel;
-    private Double offerRate;
-    private String reason;
     private Double calculatedPrice;
 }

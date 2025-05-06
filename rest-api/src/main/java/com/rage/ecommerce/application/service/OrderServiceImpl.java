@@ -160,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.MAKE_PAYMENT);
         var response = saveState(stateMachine, order);
         var dtoResponse = orderMapper.toMakePaymentResponseDTO(response);
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
     }
 
     @Transactional
