@@ -13,9 +13,9 @@ public interface OrderService {
 
     Optional<Order> getOrderById(UUID orderId);
 
-    void checkOffer(UUID processId) throws JsonProcessingException;
+    void checkOffer(CheckOfferRequestDTO checkOfferRequestDTO) throws JsonProcessingException;
 
-    void applyOffer(Order order) throws JsonProcessingException;
+    void applyOffer(ApplyOfferRequestDTO applyOfferRequestDTO) throws JsonProcessingException;
 
     boolean cancelOffer(UUID orderId);
     boolean placeOrder(UUID orderId);

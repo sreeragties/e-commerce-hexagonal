@@ -9,11 +9,9 @@ import java.util.UUID;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class OfferEvaluationResponseDTO {
+@NoArgsConstructor
+public class CheckOfferRequestDTO {
 
     private UUID processId;
-    private Double offerRate;
-    private String reason;
 }

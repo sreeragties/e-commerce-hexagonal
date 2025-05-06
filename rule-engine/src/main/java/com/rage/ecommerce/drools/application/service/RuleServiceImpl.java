@@ -49,12 +49,6 @@ public class RuleServiceImpl implements RuleService {
         var decision = executeRules(offer, subscription);
         OfferEvaluationResponseDTO response = OfferEvaluationResponseDTO.builder()
                 .processId(dto.getProcessId())
-                .orderState(dto.getOrderState())
-                .itemId(dto.getItemId())
-                .customerId(dto.getCustomerId())
-                .dateOfBirth(dto.getDateOfBirth())
-                .subscription(dto.getSubscription())
-                .itemOfferLevel(dto.getItemOfferLevel())
                 .reason(decision.getReason())
                 .offerRate(decision.getOfferRate())
                 .build();

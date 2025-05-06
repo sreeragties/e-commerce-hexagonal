@@ -87,7 +87,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void checkOffer(UUID processId) throws JsonProcessingException {
+    public void checkOffer(CheckOfferRequestDTO checkOfferRequestDTO) throws JsonProcessingException {
+        var processId = checkOfferRequestDTO.getProcessId();
         Order order = orderRepository.findById(processId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + processId));
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(processId);
@@ -119,26 +120,26 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void applyOffer(Order order) throws JsonProcessingException {
-        var item = itemRepository.findByItemId(order.getItemId()).orElseThrow(
-                () -> new RuntimeException("Item not found with id in checkOffer: " + order.getItemId()));
-        double offerRate = order.getOfferRate();
+    public void applyOffer(ApplyOfferRequestDTO applyOfferRequestDTO) throws JsonProcessingException {
+        var processId = applyOfferRequestDTO.getProcessId();
+        var existingOrderEntry = orderRepository.findById(applyOfferRequestDTO.getProcessId())
+                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + processId));
+        var item = itemRepository.findByItemId(existingOrderEntry.getItemId()).orElseThrow(
+                () -> new RuntimeException("Item not found with id in checkOffer: " + existingOrderEntry.getItemId()));
+        double offerRate = applyOfferRequestDTO.getOfferRate();
         double calculatedPrice = item.getPrice() - item.getPrice()*offerRate/100;
 
-        var existingOrderEntry = orderRepository.findById(order.getProcessId())
-                .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + order.getProcessId()));
-
         existingOrderEntry.setCalculatedPrice(calculatedPrice);
-        existingOrderEntry.setReason(order.getReason());
-        existingOrderEntry.setOfferRate(order.getOfferRate());
+        existingOrderEntry.setReason(applyOfferRequestDTO.getReason());
+        existingOrderEntry.setOfferRate(applyOfferRequestDTO.getOfferRate());
 
-        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(order.getProcessId());
+        StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(processId);
         sendEvent(stateMachine, OrderEvent.APPLY_OFFER);
         var response = saveState(stateMachine, existingOrderEntry);
 
         var dtoResponse = orderMapper.toApplyOfferResponseDTO(response);
 
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, processId);
     }
 
     @Transactional

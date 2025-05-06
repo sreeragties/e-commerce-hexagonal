@@ -1,5 +1,6 @@
 package com.rage.ecommerce.drools.infrastructure.adapter.in;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.rage.ecommerce.drools.application.dto.OfferEvaluationRequestDTO;
 import com.rage.ecommerce.drools.application.dto.CheckOfferResponseDTO;
 import com.rage.ecommerce.drools.application.mapper.OfferMapper;
@@ -29,6 +30,7 @@ public class KafkaMessageListener {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
             var requestDto = objectMapper.readValue(record.value(), CheckOfferResponseDTO.class);
             OfferEvaluationRequestDTO dto = offerMapper.toApplyOfferRequestDTOFromCheckOfferResponse(requestDto);
             ruleService.handleAndExecuteRules(dto, record.key());
