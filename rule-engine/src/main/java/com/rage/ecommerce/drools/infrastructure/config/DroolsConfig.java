@@ -60,9 +60,8 @@ public class DroolsConfig {
         KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
         kieFileSystem.writeKModuleXML(kieModuleModel.toXML());
 
-        addRulesFromDirectory(kieFileSystem, kieServices, STANDARD_RULES_PATH, "standardKieBase");
-        addRulesFromDirectory(kieFileSystem, kieServices, PREMIUM_RULES_PATH, "premiumKieBase");
-
+        addRulesFromDirectory(kieFileSystem, kieServices, STANDARD_RULES_PATH, STANDARD_RULES_PACKAGE, "standardKieBase");
+        addRulesFromDirectory(kieFileSystem, kieServices, PREMIUM_RULES_PATH, PREMIUM_RULES_PACKAGE, "premiumKieBase");
         KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem);
         kieBuilder.buildAll();
 
@@ -78,23 +77,23 @@ public class DroolsConfig {
     }
 
     private void addRulesFromDirectory(KieFileSystem kieFileSystem, KieServices kieServices,
-                                       String directoryPath, String kieBaseName) {
+                                       String sourceDirectoryPath, String targetPackage, String kieBaseName) {
         try {
-            ClassPathResource baseResource = new ClassPathResource(directoryPath);
             Resource[] resources = new PathMatchingResourcePatternResolver()
-                    .getResources("classpath:" + directoryPath + "*.drl");
+                    .getResources("classpath:" + sourceDirectoryPath + "*.drl");
+
+            String targetPathPrefix = targetPackage.replace(".", "/") + "/";
 
             for (Resource resource : resources) {
-                String path = resource.getURL().getPath();
-                String fileName = path.substring(path.lastIndexOf('/') + 1);
-                String fullPath = directoryPath + fileName;
+                String fileName = resource.getFilename();
+                String fullPathInKieFileSystem = targetPathPrefix + fileName;
 
-                kieFileSystem.write(ResourceFactory.newClassPathResource(fullPath, getClass())
+                kieFileSystem.write(ResourceFactory.newClassPathResource(sourceDirectoryPath + fileName, getClass())
                         .setResourceType(ResourceType.DRL)
-                        .setSourcePath(fullPath));
+                        .setSourcePath(fullPathInKieFileSystem));
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error loading rule files from " + directoryPath, e);
+            throw new RuntimeException("Error loading rule files from " + sourceDirectoryPath, e);
         }
     }
 }
