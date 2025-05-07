@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rage.ecommerce.application.dto.order.GeneratedPaymentStatusRequestDTO;
 import com.rage.ecommerce.application.dto.order.PaymentSuccessRequestDTO;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +17,12 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentSuccessMessageListener {
+public class PostProcessOrderMessageListener {
 
     private final OrderService orderService;
 
-    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.success-payment}",
-    containerFactory = "successPaymentResponseContainerFactory")
+    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.post-process}",
+    containerFactory = "postProcessOrderResponseContainerFactory")
     public void listen(ConsumerRecord<String, String> consumerRecord) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();

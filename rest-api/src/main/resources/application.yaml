@@ -30,6 +30,6 @@ kafka:
     evaluate-offer: ecommerce-evaluate-offer-group
     apply-offer: ecommerce-apply-group
     process-payment: ecommerce-process-payment
-    success-payment: ecommerce-success-payment
+    post-process: ecommerce-post-process-payment
     ship-order: ecommerce-ship-order
     deliver-order: ecommerce-deliver-order
