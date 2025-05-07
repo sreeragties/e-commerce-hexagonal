@@ -31,3 +31,5 @@ kafka:
     apply-offer: ecommerce-apply-group
     process-payment: ecommerce-process-payment
     success-payment: ecommerce-success-payment
+    ship-order: ecommerce-ship-order
+    deliver-order: ecommerce-deliver-order

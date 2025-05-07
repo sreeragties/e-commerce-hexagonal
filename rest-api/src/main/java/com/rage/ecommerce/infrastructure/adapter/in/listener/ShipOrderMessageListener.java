@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rage.ecommerce.application.dto.order.GeneratedPaymentStatusRequestDTO;
-import com.rage.ecommerce.application.dto.order.PaymentSuccessRequestDTO;
+import com.rage.ecommerce.application.dto.order.ShipOrderRequestDTO;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,20 +18,20 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentSuccessMessageListener {
+public class ShipOrderMessageListener {
 
     private final OrderService orderService;
 
-    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.success-payment}",
-    containerFactory = "successPaymentResponseContainerFactory")
+    @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.ship-order}",
+    containerFactory = "shipOrderResponseContainerFactory")
     public void listen(ConsumerRecord<String, String> consumerRecord) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            var requestDto = objectMapper.readValue(consumerRecord.value(), PaymentSuccessRequestDTO.class);
-            orderService.postProcessOrder(requestDto);
+            var requestDto = objectMapper.readValue(consumerRecord.value(), ShipOrderRequestDTO.class);
+            orderService.shipOrder(requestDto);
         } catch (IOException e) {
             log.error("Error processing ApplyOrderResponseDTO message: {}", e.getMessage());
         }

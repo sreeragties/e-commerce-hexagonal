@@ -38,6 +38,12 @@ public class KafkaConsumerConfig {
     @Value("${kafka.group-id.success-payment}")
     private String successPaymentGroupId;
 
+    @Value("${kafka.group-id.ship-order}")
+    private String shipOrderGroupId;
+
+    @Value("${kafka.group-id.deliver-order}")
+    private String deliverOrderGroupId;
+
     private Map<String, Object> commonProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
@@ -80,6 +86,20 @@ public class KafkaConsumerConfig {
     public ConsumerFactory<String, String> successPaymentConsumerFactory() {
         Map<String, Object> props = commonProps();
         props.put(ConsumerConfig.GROUP_ID_CONFIG, successPaymentGroupId);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConsumerFactory<String, String> shipOrderConsumerFactory() {
+        Map<String, Object> props = commonProps();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, shipOrderGroupId);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConsumerFactory<String, String> deliverOrderConsumerFactory() {
+        Map<String, Object> props = commonProps();
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, deliverOrderGroupId);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -131,6 +151,16 @@ public class KafkaConsumerConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> successPaymentResponseContainerFactory() {
         return createContainerFactory(successPaymentConsumerFactory(), "GeneratedPaymentStatusResponseDTO");
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> shipOrderResponseContainerFactory() {
+        return createContainerFactory(deliverOrderConsumerFactory(), "PaymentSuccessResponseDTO");
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> deliverOrderResponseContainerFactory() {
+        return createContainerFactory(deliverOrderConsumerFactory(), "ShipOrderResponseDTO");
     }
 }
 

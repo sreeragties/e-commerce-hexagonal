@@ -82,7 +82,7 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<OrderState
                 .withExternal()
                 .source(OrderState.PAYMENT_APPROVED)
                 .target(OrderState.PROCESSING)
-                .event(OrderEvent.PAYMENT_SUCCESS)
+                .event(OrderEvent.POST_PAYMENT_PROCESS)
                 .and()
                 .withExternal()
                 .source(OrderState.PAYMENT_REJECTED)

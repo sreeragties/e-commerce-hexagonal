@@ -21,8 +21,9 @@ public interface OrderService {
     boolean placeOrder(UUID orderId);
     void makePayment(MakePaymentRequestDTO makePaymentRequestDTO) throws JsonProcessingException;
     void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO) throws JsonProcessingException;
-    void shipOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO) throws JsonProcessingException;
-    boolean deliverOrder(UUID orderId);
+    void postProcessOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO) throws JsonProcessingException;
+    void shipOrder(ShipOrderRequestDTO shipOrderRequestDTO) throws JsonProcessingException;
+    void deliverOrder(DeliverOrderRequestDTO deliverOrderRequestDTO) throws JsonProcessingException;
     boolean cancelOrder(UUID orderId);
     boolean returnOrder(UUID orderId);
 }
