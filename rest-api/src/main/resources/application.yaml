@@ -29,6 +29,7 @@ kafka:
     check-offer: ecommerce-check-offer-group
     evaluate-offer: ecommerce-evaluate-offer-group
     apply-offer: ecommerce-apply-group
+    payment-order: ecommerce-payment-order
     process-payment: ecommerce-process-payment
     post-process: ecommerce-post-process-payment
     ship-order: ecommerce-ship-order

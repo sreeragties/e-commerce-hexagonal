@@ -32,6 +32,9 @@ public class KafkaConsumerConfig {
     @Value("${kafka.group-id.apply-offer}")
     private String applyOfferGroupId;
 
+    @Value("${kafka.group-id.payment-order}")
+    private String paymentOrderGroupId;
+
     @Value("${kafka.group-id.process-payment}")
     private String processPaymentGroupId;
 
@@ -62,16 +65,16 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, String> offerConsumerFactory() {
+    public ConsumerFactory<String, String> applyConsumerFactory() {
         Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, evaluateOfferGroupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, applyOfferGroupId);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
-    public ConsumerFactory<String, String> applyConsumerFactory() {
+    public ConsumerFactory<String, String> paymentOrderConsumerFactory() {
         Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, applyOfferGroupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, paymentOrderGroupId);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -134,13 +137,13 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> offerEvaluationResponseContainerFactory() {
-        return createContainerFactory(offerConsumerFactory(), "OfferEvaluationResponseDTO");
+    public ConcurrentKafkaListenerContainerFactory<String, String> applyOfferResponseContainerFactory() {
+        return createContainerFactory(applyConsumerFactory(), "OfferEvaluationResponseDTO");
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> applyOfferResponseContainerFactory() {
-        return createContainerFactory(applyConsumerFactory(), "ApplyOfferResponseDTO");
+    public ConcurrentKafkaListenerContainerFactory<String, String> paymentOrderResponseContainerFactory() {
+        return createContainerFactory(paymentOrderConsumerFactory(), "ApplyOfferResponseDTO");
     }
 
     @Bean
@@ -155,7 +158,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> shipOrderResponseContainerFactory() {
-        return createContainerFactory(deliverOrderConsumerFactory(), "PaymentSuccessResponseDTO");
+        return createContainerFactory(shipOrderConsumerFactory(), "PaymentSuccessResponseDTO");
     }
 
     @Bean

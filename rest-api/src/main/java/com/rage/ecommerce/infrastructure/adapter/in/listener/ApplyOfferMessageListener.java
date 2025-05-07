@@ -1,13 +1,9 @@
 package com.rage.ecommerce.infrastructure.adapter.in.listener;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.rage.ecommerce.application.dto.order.ApplyOfferResponseDTO;
-import com.rage.ecommerce.application.dto.order.MakePaymentRequestDTO;
-import com.rage.ecommerce.application.dto.order.OfferEvaluationResponseDTO;
-import com.rage.ecommerce.application.mapper.OrderMapper;
+import com.rage.ecommerce.application.dto.order.ApplyOfferRequestDTO;
 import com.rage.ecommerce.domain.port.in.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +20,6 @@ public class ApplyOfferMessageListener {
 
     private final OrderService orderService;
 
-    private final OrderMapper orderMapper;
-
     @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id.apply-offer}",
     containerFactory = "applyOfferResponseContainerFactory")
     public void listen(ConsumerRecord<String, String> consumerRecord) {
@@ -33,11 +27,11 @@ public class ApplyOfferMessageListener {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-            var requestDto = objectMapper.readValue(consumerRecord.value(), MakePaymentRequestDTO.class);
-            orderService.makePayment(requestDto);
+            var requestDto = objectMapper.readValue(consumerRecord.value(), ApplyOfferRequestDTO.class);
+            orderService.applyOffer(requestDto);
         } catch (IOException e) {
-            log.error("Error processing ApplyOrderResponseDTO message: {}", e.getMessage());
+            log.error("Error processing OfferEvaluationResponseDTO message: {}", e.getMessage());
         }
     }
 }
+
