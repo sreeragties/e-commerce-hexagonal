@@ -52,5 +52,7 @@ public interface OrderMapper {
 
     MakePaymentResponseDTO toMakePaymentResponseDTO(Order order);
 
-    GeneratedPaymentStatusRequestDTO toGeneratedPaymentStatusRequestDTO(Order order);
+    GeneratedPaymentStatusResponseDTO toGeneratedPaymentStatusResponseDTO(Order order);
+
+    PaymentSuccessResponseDTO toPaymentSuccessResponseDTO(Order order);
 }

@@ -188,22 +188,21 @@ public class OrderServiceImpl implements OrderService {
         existingOrderEntry.setPaymentStatus(generatedPaymentStatusRequestDTO.getPaymentStatus());
         sendEvent(stateMachine, OrderEvent.PAYMENT_SUCCESS);
         var response = saveState(stateMachine, existingOrderEntry);
-        var dtoResponse = orderMapper.toGeneratedPaymentStatusRequestDTO(response);
+        var dtoResponse = orderMapper.toGeneratedPaymentStatusResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
     }
 
     @Transactional
     @Override
-    public void shipOrder(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO) throws JsonProcessingException {
-        var orderId = generatedPaymentStatusRequestDTO.getProcessId();
+    public void shipOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO) throws JsonProcessingException {
+        var orderId = paymentSuccessRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
         StateMachine<OrderState, OrderEvent> stateMachine = getStateMachine(orderId);
 
-        existingOrderEntry.setPaymentStatus(generatedPaymentStatusRequestDTO.getPaymentStatus());
         sendEvent(stateMachine, OrderEvent.SHIP_ORDER);
         var response = saveState(stateMachine, existingOrderEntry);
-        var dtoResponse = orderMapper.toGeneratedPaymentStatusRequestDTO(response);
+        var dtoResponse = orderMapper.toPaymentSuccessResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
     }
 
