@@ -69,12 +69,10 @@ export class OrderTrackerComponent {
   submitOrder(): any {
     this.orderTrackerService.createOrder(this.customerId, this.itemId).subscribe(
       {
-        next: (response: OrderState | { state: OrderState }) => {
-          console.log('Order created successfully:', response);
-          if (typeof response === 'string') {
-            this.currentOrderState = response;
-          } else if (response && response.state) {
-            this.currentOrderState = response.state;
+        next: res => {
+          console.log('Order created successfully:', res);
+          if (typeof res.orderState === 'string') {
+            this.currentOrderState = res.orderState;
           }
         },
         error: (error) => {
