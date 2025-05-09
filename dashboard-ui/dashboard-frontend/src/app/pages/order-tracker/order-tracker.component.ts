@@ -1,8 +1,11 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {NgClass, NgIf} from "@angular/common";
 import {FormsModule} from '@angular/forms';
 import {MatIcon} from '@angular/material/icon';
 import {OrderTrackerService} from '../../service/order-tracker.service';
+import {WebSocketService} from '../../service/websocket.service';
+import {StompSubscription} from '@stomp/stompjs';
+import {Subject, takeUntil} from 'rxjs';
 
 export enum OrderState {
   CREATED = 'CREATED',
@@ -26,11 +29,16 @@ export enum OrderState {
   templateUrl: './order-tracker.component.html',
   styleUrl: './order-tracker.component.scss'
 })
-export class OrderTrackerComponent {
+export class OrderTrackerComponent implements OnInit, OnDestroy {
 
-  constructor(private orderTrackerService: OrderTrackerService) {}
+  constructor(private orderTrackerService: OrderTrackerService,
+              private webSocketService: WebSocketService) {}
 
   @Input() currentOrderState: OrderState | null = null;
+  @Input() orderId: string | null = null;
+
+  private orderStatusSubscription: StompSubscription | null = null;
+  private destroy$ = new Subject<void>();
 
   itemId: string = '';
   customerId: string = '';
@@ -66,23 +74,53 @@ export class OrderTrackerComponent {
     return currentStateIndex > stepStateIndex;
   }
 
-  submitOrder(): any {
-    this.orderTrackerService.createOrder(this.customerId, this.itemId).subscribe(
-      {
-        next: res => {
-          console.log('Order created successfully:', res);
-          if (typeof res.orderState === 'string') {
-            this.currentOrderState = res.orderState;
-          }
-        },
-        error: (error) => {
-          console.error('Error creating order:', error);
-        },
-        complete: () => {
-          console.log('Order creation observable completed.');
+  createOrderAndTrack(): void {
+    this.orderTrackerService.createOrder(this.customerId, this.itemId).subscribe({
+      next: (order: any) => {
+        console.log('Order created successfully:', order);
+        this.orderId = order.id;
+        this.currentOrderState = order.orderState;
+        if (this.orderId) {
+          this.subscribeToOrderStatus(this.orderId);
         }
-      }
-    );
+      },
+    });
+  }
+
+  private subscribeToOrderStatus(orderId: string): void {
+    this.unsubscribeFromOrderStatus();
+
+    const topic = `/topic/orders/status/${orderId}`;
+    console.log(`Attempting to subscribe to WebSocket topic: ${topic}`);
+
+    this.orderStatusSubscription = this.webSocketService.subscribe(topic);
+
+    this.webSocketService.messages$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((newState: OrderState) => {
+        console.log('Received order state update via WebSocket:', newState);
+        this.currentOrderState = newState;
+      });
+  }
+
+  private unsubscribeFromOrderStatus(): void {
+    if (this.orderStatusSubscription) {
+      console.log('Unsubscribing from WebSocket topic.');
+      this.orderStatusSubscription.unsubscribe();
+      this.orderStatusSubscription = null;
+    }
+  }
+
+  ngOnInit(): void {
+    if (this.orderId) {
+      this.subscribeToOrderStatus(this.orderId);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribeFromOrderStatus();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

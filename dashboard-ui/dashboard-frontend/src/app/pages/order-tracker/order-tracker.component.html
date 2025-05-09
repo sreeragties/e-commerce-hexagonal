@@ -20,7 +20,7 @@
           </div>
           <div class="flex justify-center w-32">
             <button type="submit" class="flex rounded-full items-center px-2 py-2 text-gray-700 bg-[#dfe5f0]
-            border border-[#a1b4d8] focus:outline-none" (click)="submitOrder()">
+            border border-[#a1b4d8] focus:outline-none" (click)="createOrderAndTrack()">
               <ng-container *ngIf="!isLoading; else loadingSpinner">
                 <mat-icon class="h-2 w-2 text-[#1b3057]">chevron_right</mat-icon>
               </ng-container>

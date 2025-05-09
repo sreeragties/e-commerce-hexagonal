@@ -25,6 +25,7 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.StateMachineEventResult;
@@ -54,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final CustomerRepository customerRepository;
     private final ItemRepository itemRepository;
+    private final SimpMessagingTemplate webSocketMessagingTemplate;
 
     private static final String ORDER_NOT_FOUND_LITERAL = "Order not found with id: ";
 
@@ -74,6 +76,8 @@ public class OrderServiceImpl implements OrderService {
         var dtoResponse = orderMapper.toCreateOrderResponseDTO(response);
         try {
             sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+            webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
+                    + response.getProcessId(), response.getOrderState());
         } catch (Exception e) {
             log.error("Order created successfully but failed to send message: {}", e.getMessage());
         }
@@ -140,6 +144,8 @@ public class OrderServiceImpl implements OrderService {
         var dtoResponse = orderMapper.toApplyOfferResponseDTO(response);
 
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, processId);
+        webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
+                + response.getProcessId(), response.getOrderState());
     }
 
     @Transactional
@@ -190,6 +196,8 @@ public class OrderServiceImpl implements OrderService {
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toGeneratedPaymentStatusResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
+                + response.getProcessId(), response.getOrderState());
     }
 
     @Override
@@ -203,6 +211,8 @@ public class OrderServiceImpl implements OrderService {
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toPaymentSuccessResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
+                + response.getProcessId(), response.getOrderState());
     }
 
     @Transactional
@@ -217,6 +227,8 @@ public class OrderServiceImpl implements OrderService {
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toShipOrderResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
+                + response.getProcessId(), response.getOrderState());
     }
 
     @Transactional
@@ -231,6 +243,8 @@ public class OrderServiceImpl implements OrderService {
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toDeliverOrderResponseDTO(response);
         sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
+                + response.getProcessId(), response.getOrderState());
     }
 
     @Transactional
