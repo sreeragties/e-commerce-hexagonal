@@ -5,7 +5,7 @@ import {MatIcon} from '@angular/material/icon';
 import {OrderTrackerService} from '../../service/order-tracker.service';
 import {WebSocketService} from '../../service/websocket.service';
 import {StompSubscription} from '@stomp/stompjs';
-import {Subject, takeUntil} from 'rxjs';
+import {Subject, Subscription, takeUntil} from 'rxjs';
 
 export enum OrderState {
   CREATED = 'CREATED',
@@ -37,7 +37,7 @@ export class OrderTrackerComponent implements OnInit, OnDestroy {
   @Input() currentOrderState: OrderState | null = null;
   @Input() orderId: string | null = null;
 
-  private orderStatusSubscription: StompSubscription | null = null;
+  private orderStatusSubscription: Subscription | null = null;
   private destroy$ = new Subject<void>();
 
   itemId: string = '';
@@ -93,9 +93,7 @@ export class OrderTrackerComponent implements OnInit, OnDestroy {
     const topic = `/topic/orders/status/${orderId}`;
     console.log(`Attempting to subscribe to WebSocket topic: ${topic}`);
 
-    this.orderStatusSubscription = this.webSocketService.subscribe(topic);
-
-    this.webSocketService.messages$
+    this.orderStatusSubscription = this.webSocketService.subscribe(topic)
       .pipe(takeUntil(this.destroy$))
       .subscribe((newState: OrderState) => {
         console.log('Received order state update via WebSocket:', newState);

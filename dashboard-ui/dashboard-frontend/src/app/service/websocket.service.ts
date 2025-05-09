@@ -1,78 +1,58 @@
 import { Injectable } from '@angular/core';
-import {Observable, Subject} from 'rxjs';
-import { Client, Message, StompSubscription } from '@stomp/stompjs';
-import {OrderState} from '../pages/order-tracker/order-tracker.component';
+import { RxStomp } from '@stomp/rx-stomp';
+import { Subject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebSocketService {
-
-  private stompClient: Client;
+  private rxStomp: RxStomp;
   private messageSubject: Subject<any> = new Subject<any>();
   public messages$: Observable<any> = this.messageSubject.asObservable();
 
-  private readonly websocketEndpoint = 'ws://localhost:8080/ws';
-
   constructor() {
-    this.stompClient = new Client({
-      brokerURL: this.websocketEndpoint,
-      reconnectDelay: 5000,
+    this.rxStomp = new RxStomp();
+    this.rxStomp.configure({
+      brokerURL: 'ws://localhost:8080/ws',
+      connectHeaders: {},
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
-      debug: (str) => {
-        console.log('STOMP Debug:', str);
-      },
+      reconnectDelay: 5000,
+      debug: (msg) => {
+        console.log('STOMP Debug:', msg);
+      }
     });
 
-    this.stompClient.onConnect = (frame) => {
-      console.log('Connected to WebSocket:', frame);
-    };
-
-    this.stompClient.onDisconnect = (frame) => {
-      console.log('Disconnected from WebSocket:', frame);
-    };
-
-    this.stompClient.onWebSocketError = (event) => {
-      console.error('WebSocket error:', event);
-    };
-
-    this.stompClient.onStompError = (frame) => {
-      console.error('STOMP error:', frame);
-      console.error('Broker reported:', frame.headers['message']);
-      console.error('Additional details:', frame.body);
-    };
-
-    this.stompClient.activate();
+    this.rxStomp.activate();
   }
 
   connect(): void {
-    if (!this.stompClient.active) {
-      this.stompClient.activate();
-    }
-  }
-  disconnect(): void {
-    if (this.stompClient.active) {
-      this.stompClient.deactivate();
+    if (!this.rxStomp.connected()) {
+      this.rxStomp.activate();
     }
   }
 
-  subscribe(topic: string): StompSubscription | null {
-    if (this.stompClient.active) {
-      return this.stompClient.subscribe(topic, (message: Message) => {
-        console.log(`Received message on topic ${topic}:`, message.body);
-        try {
-          const orderState: OrderState = JSON.parse(message.body);
-          this.messageSubject.next(orderState);
-        } catch (e) {
-          console.error('Error parsing WebSocket message:', e);
-        }
-      });
-    } else {
-      console.warn('STOMP client not active. Cannot subscribe.');
-      return null;
+  disconnect(): void {
+    if (this.rxStomp.connected()) {
+      this.rxStomp.deactivate();
     }
   }
+
+  subscribe(topic: string): Observable<any> {
+    return this.rxStomp.watch(topic).pipe(
+      map(message => {
+        console.log(`Received message on topic ${topic}:`, message.body);
+        try {
+          return JSON.parse(message.body);
+        } catch (e) {
+          console.error('Error parsing WebSocket message:', e);
+          return null;
+        }
+      })
+    );
+  }
+
   ngOnDestroy(): void {
     this.disconnect();
   }
