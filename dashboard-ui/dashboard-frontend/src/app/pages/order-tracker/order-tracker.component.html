@@ -30,50 +30,129 @@
           </div>
         </div>
       </div>
-      <div class="bg-gray-200 rounded-md flex items-center justify-center">
-        <div class="container mx-auto px-4 py-8">
+      <div class="bg-gray-200 rounded-md flex items-center justify-center p-4">
+        <div class="container mx-auto">
           <div class="flex flex-col items-start">
-            <div class="flex items-center mb-4">
-              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-green-400 bg-green-300 text-white">
-                <mat-icon class="w-4 h-4">check</mat-icon>
+
+            <div class="flex items-center mb-0">
+              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2
+                        " [ngClass]="{
+                          'border-green-400 bg-green-300 text-white': isStepComplete(OrderState.CREATED),
+                          'border-blue-400 bg-blue-100 text-blue-400': isStepActive(OrderState.CREATED),
+                          'border-gray-400 text-gray-600': !isStepComplete(OrderState.CREATED) && !isStepActive(OrderState.CREATED)
+                        }">
+                <mat-icon *ngIf="isStepComplete(OrderState.CREATED)" class="w-4 h-4">check</mat-icon>
+                <mat-icon *ngIf="isStepActive(OrderState.CREATED)" class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+                <span *ngIf="!isStepComplete(OrderState.CREATED) && !isStepActive(OrderState.CREATED)">1</span>
               </div>
-              <div class="ml-3 text-lg font-medium text-green-700">Placed Order</div>
+              <div class="ml-3 text-lg font-medium
+                        " [ngClass]="{
+                          'text-green-700': isStepComplete(OrderState.CREATED),
+                          'text-blue-400': isStepActive(OrderState.CREATED),
+                          'text-gray-600': !isStepComplete(OrderState.CREATED) && !isStepActive(OrderState.CREATED)
+                        }">Placed Order</div>
             </div>
-            <div class="w-0.5 h-8 bg-green-500 ml-3.5"></div>
-            <div class="flex items-center mb-4">
-              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-blue-400 bg-blue-100 text-blue-400">
-                <mat-icon class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+            <div class="w-0.5 h-8 ml-3.5 mb-0" [ngClass]="{ 'bg-green-500': isLineComplete(OrderState.CREATED), 'bg-gray-300': !isLineComplete(OrderState.CREATED) }"></div>
+
+            <div class="flex items-center mb-0">
+              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2
+                        " [ngClass]="{
+                          'border-green-400 bg-green-300 text-white': isStepComplete(OrderState.OFFER_APPLIED),
+                          'border-blue-400 bg-blue-100 text-blue-400': isStepActive(OrderState.OFFER_APPLIED),
+                          'border-gray-400 text-gray-600': !isStepComplete(OrderState.OFFER_APPLIED) && !isStepActive(OrderState.OFFER_APPLIED)
+                        }">
+                <mat-icon *ngIf="isStepComplete(OrderState.OFFER_APPLIED)" class="w-4 h-4">check</mat-icon>
+                <mat-icon *ngIf="isStepActive(OrderState.OFFER_APPLIED)" class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+                <span *ngIf="!isStepComplete(OrderState.OFFER_APPLIED) && !isStepActive(OrderState.OFFER_APPLIED)">2</span>
               </div>
-              <div class="ml-3 text-lg font-medium text-blue-400">Apply Offer</div>
+              <div class="ml-3 text-lg font-medium
+                        " [ngClass]="{
+                          'text-green-700': isStepComplete(OrderState.OFFER_APPLIED),
+                          'text-blue-400': isStepActive(OrderState.OFFER_APPLIED),
+                          'text-gray-600': !isStepComplete(OrderState.OFFER_APPLIED) && !isStepActive(OrderState.OFFER_APPLIED)
+                        }">Apply Offer</div>
             </div>
-            <div class="w-0.5 h-8 bg-gray-300 ml-3.5"></div>
-            <div class="flex items-center mb-4">
-              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-400 text-gray-600">
-                3
+            <div class="w-0.5 h-8 ml-3.5 mb-0" [ngClass]="{ 'bg-green-500': isLineComplete(OrderState.OFFER_APPLIED), 'bg-gray-300': !isLineComplete(OrderState.OFFER_APPLIED) }"></div>
+
+            <div class="flex items-center mb-0">
+              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2
+                        " [ngClass]="{
+                          'border-green-400 bg-green-300 text-white': isStepComplete(OrderState.PAYMENT_APPROVED),
+                          'border-blue-400 bg-blue-100 text-blue-400': isStepActive(OrderState.PAYMENT_APPROVED),
+                          'border-gray-400 text-gray-600': !isStepComplete(OrderState.PAYMENT_APPROVED) && !isStepActive(OrderState.PAYMENT_APPROVED)
+                        }">
+                <mat-icon *ngIf="isStepComplete(OrderState.PAYMENT_APPROVED)" class="w-4 h-4">check</mat-icon>
+                <mat-icon *ngIf="isStepActive(OrderState.PAYMENT_APPROVED)" class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+                <span *ngIf="!isStepComplete(OrderState.PAYMENT_APPROVED) && !isStepActive(OrderState.PAYMENT_APPROVED)">3</span>
               </div>
-              <div class="ml-3 text-lg text-gray-600">Payment</div>
+              <div class="ml-3 text-lg font-medium
+                        " [ngClass]="{
+                          'text-green-700': isStepComplete(OrderState.PAYMENT_APPROVED),
+                          'text-blue-400': isStepActive(OrderState.PAYMENT_APPROVED),
+                          'text-gray-600': !isStepComplete(OrderState.PAYMENT_APPROVED) && !isStepActive(OrderState.PAYMENT_APPROVED)
+                        }">Payment</div>
             </div>
-            <div class="w-0.5 h-8 bg-gray-300 ml-3.5"></div>
-            <div class="flex items-center mb-4">
-              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-400 text-gray-600">
-                4
+            <div class="w-0.5 h-8 ml-3.5 mb-0" [ngClass]="{ 'bg-green-500': isLineComplete(OrderState.PAYMENT_APPROVED), 'bg-gray-300': !isLineComplete(OrderState.PAYMENT_APPROVED) }"></div>
+
+            <div class="flex items-center mb-0">
+              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2
+                        " [ngClass]="{
+                          'border-green-400 bg-green-300 text-white': isStepComplete(OrderState.PROCESSING),
+                          'border-blue-400 bg-blue-100 text-blue-400': isStepActive(OrderState.PROCESSING),
+                          'border-gray-400 text-gray-600': !isStepComplete(OrderState.PROCESSING) && !isStepActive(OrderState.PROCESSING)
+                        }">
+                <mat-icon *ngIf="isStepComplete(OrderState.PROCESSING)" class="w-4 h-4">check</mat-icon>
+                <mat-icon *ngIf="isStepActive(OrderState.PROCESSING)" class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+                <span *ngIf="!isStepComplete(OrderState.PROCESSING) && !isStepActive(OrderState.PROCESSING)">4</span>
               </div>
-              <div class="ml-3 text-lg text-gray-600">Process Payment</div>
+              <div class="ml-3 text-lg font-medium
+                        " [ngClass]="{
+                          'text-green-700': isStepComplete(OrderState.PROCESSING),
+                          'text-blue-400': isStepActive(OrderState.PROCESSING),
+                          'text-gray-600': !isStepComplete(OrderState.PROCESSING) && !isStepActive(OrderState.PROCESSING)
+                        }">Process Payment</div>
             </div>
-            <div class="w-0.5 h-8 bg-gray-300 ml-3.5"></div>
-            <div class="flex items-center mb-4">
-              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-400 text-gray-600">
-                5
+            <div class="w-0.5 h-8 ml-3.5 mb-0" [ngClass]="{ 'bg-green-500': isLineComplete(OrderState.PROCESSING), 'bg-gray-300': !isLineComplete(OrderState.PROCESSING) }"></div>
+
+            <div class="flex items-center mb-0">
+              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2
+                        " [ngClass]="{
+                          'border-green-400 bg-green-300 text-white': isStepComplete(OrderState.SHIPPED),
+                          'border-blue-400 bg-blue-100 text-blue-400': isStepActive(OrderState.SHIPPED),
+                          'border-gray-400 text-gray-600': !isStepComplete(OrderState.SHIPPED) && !isStepActive(OrderState.SHIPPED)
+                        }">
+                <mat-icon *ngIf="isStepComplete(OrderState.SHIPPED)" class="w-4 h-4">check</mat-icon>
+                <mat-icon *ngIf="isStepActive(OrderState.SHIPPED)" class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+                <span *ngIf="!isStepComplete(OrderState.SHIPPED) && !isStepActive(OrderState.SHIPPED)">5</span>
               </div>
-              <div class="ml-3 text-lg text-gray-600">Ship</div>
+              <div class="ml-3 text-lg font-medium
+                        " [ngClass]="{
+                          'text-green-700': isStepComplete(OrderState.SHIPPED),
+                          'text-blue-400': isStepActive(OrderState.SHIPPED),
+                          'text-gray-600': !isStepComplete(OrderState.SHIPPED) && !isStepActive(OrderState.SHIPPED)
+                        }">Ship</div>
             </div>
-            <div class="w-0.5 h-8 bg-gray-300 ml-3.5"></div>
+            <div class="w-0.5 h-8 ml-3.5 mb-0" [ngClass]="{ 'bg-green-500': isLineComplete(OrderState.SHIPPED), 'bg-gray-300': !isLineComplete(OrderState.SHIPPED) }"></div>
+
             <div class="flex items-center">
-              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2 border-gray-400 text-gray-600">
-                6
+              <div class="w-8 h-8 flex items-center justify-center rounded-full border-2
+                        " [ngClass]="{
+                          'border-green-400 bg-green-300 text-white': isStepComplete(OrderState.DELIVERED),
+                          'border-blue-400 bg-blue-100 text-blue-400': isStepActive(OrderState.DELIVERED),
+                          'border-gray-400 text-gray-600': !isStepComplete(OrderState.DELIVERED) && !isStepActive(OrderState.DELIVERED)
+                        }">
+                <mat-icon *ngIf="isStepComplete(OrderState.DELIVERED)" class="w-4 h-4">check</mat-icon>
+                <mat-icon *ngIf="isStepActive(OrderState.DELIVERED)" class="animate-spin text-[#1b3057] text-2xl">autorenew</mat-icon>
+                <span *ngIf="!isStepComplete(OrderState.DELIVERED) && !isStepActive(OrderState.DELIVERED)">6</span>
               </div>
-              <div class="ml-3 text-lg text-gray-600">Deliver</div>
+              <div class="ml-3 text-lg font-medium
+                        " [ngClass]="{
+                          'text-green-700': isStepComplete(OrderState.DELIVERED),
+                          'text-blue-400': isStepActive(OrderState.DELIVERED),
+                          'text-gray-600': !isStepComplete(OrderState.DELIVERED) && !isStepActive(OrderState.DELIVERED)
+                        }">Deliver</div>
             </div>
+
           </div>
         </div>
       </div>
