@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import {HomeComponent} from './pages/home/home.component';
-import {DashboardListComponent} from './pages/dashboard-list/dashboard-list.component';
 import {OrderTrackerComponent} from './pages/order-tracker/order-tracker.component';
 
 export const routes: Routes = [
