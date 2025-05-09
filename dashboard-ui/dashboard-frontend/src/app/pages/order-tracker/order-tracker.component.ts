@@ -4,7 +4,6 @@ import {FormsModule} from '@angular/forms';
 import {MatIcon} from '@angular/material/icon';
 import {OrderTrackerService} from '../../service/order-tracker.service';
 import {WebSocketService} from '../../service/websocket.service';
-import {StompSubscription} from '@stomp/stompjs';
 import {Subject, Subscription, takeUntil} from 'rxjs';
 
 export enum OrderState {
@@ -13,8 +12,7 @@ export enum OrderState {
   PAYMENT_APPROVED = 'PAYMENT_APPROVED',
   PROCESSING = 'PROCESSING',
   SHIPPED = 'SHIPPED',
-  DELIVERED = 'DELIVERED',
-  COMPLETED = 'COMPLETED',
+  DELIVERED = 'DELIVERED'
 }
 
 @Component({
@@ -78,7 +76,7 @@ export class OrderTrackerComponent implements OnInit, OnDestroy {
     this.orderTrackerService.createOrder(this.customerId, this.itemId).subscribe({
       next: (order: any) => {
         console.log('Order created successfully:', order);
-        this.orderId = order.id;
+        this.orderId = order.processId;
         this.currentOrderState = order.orderState;
         if (this.orderId) {
           this.subscribeToOrderStatus(this.orderId);
