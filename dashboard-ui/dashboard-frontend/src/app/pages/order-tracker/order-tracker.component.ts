@@ -27,7 +27,7 @@ export enum OrderState {
 })
 export class OrderTrackerComponent {
 
-  @Input() currentOrderState: OrderState | null = OrderState.PAYMENT_APPROVED;
+  @Input() currentOrderState: OrderState | null = null;
 
   isLoading: boolean = false;
   customerId: string = '';
@@ -40,11 +40,16 @@ export class OrderTrackerComponent {
     }
     const currentStateIndex = Object.values(OrderState).indexOf(this.currentOrderState);
     const stepStateIndex = Object.values(OrderState).indexOf(stepState);
-    return currentStateIndex > stepStateIndex;
+    return currentStateIndex >= stepStateIndex;
   }
 
   isStepActive(stepState: OrderState): boolean {
-    return this.currentOrderState === stepState;
+    if (this.currentOrderState === null) {
+      return false;
+    }
+    const currentStateIndex = Object.values(OrderState).indexOf(this.currentOrderState);
+    const stepStateIndex = Object.values(OrderState).indexOf(stepState);
+    return currentStateIndex === stepStateIndex - 1;
   }
 
   isLineComplete(stepState: OrderState): boolean {
