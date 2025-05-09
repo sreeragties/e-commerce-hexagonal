@@ -12,17 +12,18 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/orders")
 public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/orders/create")
+    @PostMapping("/create")
     public ResponseEntity<CreateOrderResponseDTO> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequestDTO) throws JsonProcessingException {
         var order = orderService.createOrder(createOrderRequestDTO);
         return ResponseEntity.ok(order);
     }
 
-    @PostMapping("/orders/{orderId}/cancel-offer")
+    @PostMapping("/{orderId}/cancel-offer")
     public ResponseEntity<String> cancelOffer(@PathVariable UUID orderId) {
         if (orderService.cancelOffer(orderId)) {
             return ResponseEntity.ok("Offer cancelled successfully, now in PAYMENT_PENDING state.");
