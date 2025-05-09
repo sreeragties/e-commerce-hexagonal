@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {NgClass, NgIf} from "@angular/common";
 import {FormsModule} from '@angular/forms';
 import {MatIcon} from '@angular/material/icon';
+import {OrderTrackerService} from '../../service/order-tracker.service';
 
 export enum OrderState {
   CREATED = 'CREATED',
@@ -20,17 +21,21 @@ export enum OrderState {
     NgIf,
     FormsModule,
     MatIcon,
-    NgClass
+    NgClass,
   ],
   templateUrl: './order-tracker.component.html',
   styleUrl: './order-tracker.component.scss'
 })
 export class OrderTrackerComponent {
 
+  constructor(private orderTrackerService: OrderTrackerService) {}
+
   @Input() currentOrderState: OrderState | null = null;
 
-  isLoading: boolean = false;
+  itemId: string = '';
   customerId: string = '';
+
+  isLoading: boolean = false;
 
   OrderState = OrderState;
 
@@ -59,6 +64,27 @@ export class OrderTrackerComponent {
     const currentStateIndex = Object.values(OrderState).indexOf(this.currentOrderState);
     const stepStateIndex = Object.values(OrderState).indexOf(stepState);
     return currentStateIndex > stepStateIndex;
+  }
+
+  submitOrder(): any {
+    this.orderTrackerService.createOrder(this.customerId, this.itemId).subscribe(
+      {
+        next: (response: OrderState | { state: OrderState }) => {
+          console.log('Order created successfully:', response);
+          if (typeof response === 'string') {
+            this.currentOrderState = response;
+          } else if (response && response.state) {
+            this.currentOrderState = response.state;
+          }
+        },
+        error: (error) => {
+          console.error('Error creating order:', error);
+        },
+        complete: () => {
+          console.log('Order creation observable completed.');
+        }
+      }
+    );
   }
 
 }

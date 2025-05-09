@@ -8,18 +8,19 @@
             <input class="rounded-3xl w-full py-2 px-3 pr-10 bg-white border border-[#a1b4d8] shadow-sm
                    text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-[#5c7bb5]
                    focus:ring-opacity-50 focus:ring-1 text-xs placeholder:text-xs font-sans text-center h-full"
-                   id="tracking-id" type="text" placeholder="Enter order ID"
+                   id="customer-id" [(ngModel)]="customerId" type="text" placeholder="Enter customer ID"
             />
           </div>
           <div class="w-full md:max-w-md">
             <input class="rounded-3xl w-full py-2 px-3 pr-10 bg-white border border-[#a1b4d8] shadow-sm
                    text-gray-700 leading-tight focus:outline-none focus:ring focus:ring-[#5c7bb5]
                    focus:ring-opacity-50 focus:ring-1 text-xs placeholder:text-xs font-sans text-center h-full"
-                   id="tracking-id2" type="text" placeholder="Enter customer ID"
+                   id="item-id" [(ngModel)]="itemId" type="text" placeholder="Enter item ID"
             />
           </div>
           <div class="flex justify-center w-32">
-            <button type="submit" class="flex rounded-full items-center px-2 py-2 text-gray-700 bg-[#dfe5f0] border border-[#a1b4d8] focus:outline-none">
+            <button type="submit" class="flex rounded-full items-center px-2 py-2 text-gray-700 bg-[#dfe5f0]
+            border border-[#a1b4d8] focus:outline-none" (click)="submitOrder()">
               <ng-container *ngIf="!isLoading; else loadingSpinner">
                 <mat-icon class="h-2 w-2 text-[#1b3057]">chevron_right</mat-icon>
               </ng-container>
