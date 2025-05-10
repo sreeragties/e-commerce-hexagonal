@@ -20,6 +20,7 @@
         <module>rest-api</module>
         <module>rule-engine</module>
         <module>ecommerce-payment</module>
+        <module>ship-order</module>
     </modules>
 
     <properties>

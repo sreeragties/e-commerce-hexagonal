@@ -163,7 +163,7 @@ public class KafkaConsumerConfig {
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> deliverOrderResponseContainerFactory() {
-        return createContainerFactory(deliverOrderConsumerFactory(), "ShipOrderResponseDTO");
+        return createContainerFactory(deliverOrderConsumerFactory(), "StageForDeliverResponseDTO");
     }
 }
 

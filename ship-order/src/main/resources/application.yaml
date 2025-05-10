@@ -1,0 +1,16 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: ship-and-deliver
+  boot:
+    run:
+      jvmArguments: --add-opens java.base/java.util=ALL-UNNAMED
+  kafka:
+    bootstrap-servers: http://localhost:9092
+
+kafka:
+  topic:
+    name: e-commerce
+  group-id: shipping-group
