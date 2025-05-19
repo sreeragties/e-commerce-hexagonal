@@ -5,5 +5,5 @@ import com.rage.ecommerce.drools.application.dto.OfferEvaluationRequestDTO;
 
 public interface RuleService {
 
-    void handleAndExecuteRules(OfferEvaluationRequestDTO dto, String key) throws JsonProcessingException;
+    void handleAndExecuteRules(OfferEvaluationRequestDTO dto, String key, String correlationIdHeader) throws JsonProcessingException;
 }

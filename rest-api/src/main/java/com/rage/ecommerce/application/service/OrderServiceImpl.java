@@ -2,8 +2,6 @@ package com.rage.ecommerce.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.rage.ecommerce.application.dto.order.*;
 import com.rage.ecommerce.application.mapper.OrderMapper;
 import com.rage.ecommerce.domain.enums.OrderEvent;
@@ -28,18 +26,18 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
-import org.springframework.statemachine.StateMachineEventResult;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
+
+import static com.rage.ecommerce.infrastructure.adapter.out.KafkaEventTypes.*;
 
 
 @Service
@@ -56,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
     private final CustomerRepository customerRepository;
     private final ItemRepository itemRepository;
     private final SimpMessagingTemplate webSocketMessagingTemplate;
+    private final ObjectMapper objectMapper;
 
     private static final String ORDER_NOT_FOUND_LITERAL = "Order not found with id: ";
 
@@ -73,9 +72,10 @@ public class OrderServiceImpl implements OrderService {
         order.setRequestCreatedDate(Instant.now());
 
         var response = orderRepository.save(order);
+        String correlationId = UUID.randomUUID().toString();
         var dtoResponse = orderMapper.toCreateOrderResponseDTO(response);
         try {
-            sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, response.getProcessId());
+            sendProducerMessage(ORDER_CREATED, "v1.0", dtoResponse, correlationId, response.getProcessId().toString());
             webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                     + response.getProcessId(), response.getOrderState());
         } catch (Exception e) {
@@ -91,7 +91,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void checkOffer(CheckOfferRequestDTO checkOfferRequestDTO) throws JsonProcessingException {
+    public void checkOffer(CheckOfferRequestDTO checkOfferRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var processId = checkOfferRequestDTO.getProcessId();
         Order order = orderRepository.findById(processId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + processId));
@@ -115,7 +115,7 @@ public class OrderServiceImpl implements OrderService {
         dtoResponse.setItemOfferLevel(item.getItemOfferLevel());
 
         try {
-            sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
+            sendProducerMessage(ORDER_READY_TO_CHECK_OFFER, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         } catch (Exception e) {
             log.error("Order checked successfully but failed to send message: {}", e.getMessage());
         }
@@ -124,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void applyOffer(ApplyOfferRequestDTO applyOfferRequestDTO) throws JsonProcessingException {
+    public void applyOffer(ApplyOfferRequestDTO applyOfferRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var processId = applyOfferRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(applyOfferRequestDTO.getProcessId())
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + processId));
@@ -143,7 +143,7 @@ public class OrderServiceImpl implements OrderService {
 
         var dtoResponse = orderMapper.toApplyOfferResponseDTO(response);
 
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), response, processId);
+        sendProducerMessage(ORDER_OFFER_APPLIED, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                 + response.getProcessId(), response.getOrderState());
     }
@@ -173,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public void makePayment(MakePaymentRequestDTO makePaymentRequestDTO) throws JsonProcessingException {
+    public void makePayment(MakePaymentRequestDTO makePaymentRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var orderId = makePaymentRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
@@ -181,11 +181,11 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.MAKE_PAYMENT);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toMakePaymentResponseDTO(response);
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, response.getProcessId());
+        sendProducerMessage(ORDER_MAKE_PAYMENT, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
     }
 
     @Override
-    public void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO) throws JsonProcessingException {
+    public void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var orderId = generatedPaymentStatusRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
@@ -195,13 +195,13 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.PAYMENT_SUCCESS);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toGeneratedPaymentStatusResponseDTO(response);
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        sendProducerMessage(ORDER_PAYMENT_SUCCESSFUL, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                 + response.getProcessId(), response.getOrderState());
     }
 
     @Override
-    public void postProcessOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO) throws JsonProcessingException {
+    public void postProcessOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var orderId = paymentSuccessRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
@@ -210,14 +210,14 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.POST_PAYMENT_PROCESS);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toPaymentSuccessResponseDTO(response);
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        sendProducerMessage(ORDER_POSTPROCESSED, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                 + response.getProcessId(), response.getOrderState());
     }
 
     @Transactional
     @Override
-    public void shipOrder(ShipOrderRequestDTO shipOrderRequestDTO) throws JsonProcessingException {
+    public void shipOrder(ShipOrderRequestDTO shipOrderRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var orderId = shipOrderRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
@@ -226,14 +226,14 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.SHIP_ORDER);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toShipOrderResponseDTO(response);
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        sendProducerMessage(ORDER_SHIPPED, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                 + response.getProcessId(), response.getOrderState());
     }
 
     @Transactional
     @Override
-    public void deliverOrder(DeliverOrderRequestDTO deliverOrderRequestDTO) throws JsonProcessingException {
+    public void deliverOrder(DeliverOrderRequestDTO deliverOrderRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var orderId = deliverOrderRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
@@ -242,7 +242,7 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.DELIVER_ORDER);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toDeliverOrderResponseDTO(response);
-        sendProducerMessage(dtoResponse.getClass().getSimpleName(), dtoResponse, orderId);
+        sendProducerMessage(ORDER_DELIVERED, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                 + response.getProcessId(), response.getOrderState());
     }
@@ -269,18 +269,29 @@ public class OrderServiceImpl implements OrderService {
         return stateMachine.getState().getId() == OrderState.CANCELLED;
     }
 
-    private <T> void sendProducerMessage(String className, T message, UUID processId) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        String serialisedResponse = objectMapper.writeValueAsString(message);
-        String serialisedProcessId = processId.toString();
+    public <T> void sendProducerMessage(String kafkaEventType, String eventVersion, T message, String correlationId, String messageKey) throws JsonProcessingException {
+        String serialisedPayload = objectMapper.writeValueAsString(message);
 
         List<Header> headers = new ArrayList<>();
-        headers.add(new RecordHeader("DTOClassName", className.getBytes()));
+        headers.add(new RecordHeader("event-type", kafkaEventType.getBytes(StandardCharsets.UTF_8)));
+        headers.add(new RecordHeader("event-version", eventVersion.getBytes(StandardCharsets.UTF_8)));
+        if (correlationId != null) {
+            headers.add(new RecordHeader("correlation-id", correlationId.getBytes(StandardCharsets.UTF_8)));
+        } else {
+            log.warn("Sending Kafka event '{}' without a correlation ID. Consider propagating one.", kafkaEventType);
+        }
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+                topicName,
+                null,
+                messageKey,
+                serialisedPayload,
+                headers
+        );
 
-        ProducerRecord<String, String> producerRecord = new ProducerRecord <>(topicName, null, serialisedProcessId, serialisedResponse, headers);
         kafkaTemplate.send(producerRecord);
+
+        log.info("Sent event '{}' (v{}) with correlation ID '{}' to topic '{}' with key '{}'",
+                kafkaEventType, eventVersion, correlationId, topicName, messageKey);
     }
 
     private StateMachine<OrderState, OrderEvent> getStateMachine(UUID orderId) {

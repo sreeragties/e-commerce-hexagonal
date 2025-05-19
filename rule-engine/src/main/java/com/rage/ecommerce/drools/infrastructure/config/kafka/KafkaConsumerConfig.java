@@ -40,22 +40,7 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setRecordFilterStrategy(record -> {
-            String dtoClassName = getDtoClassName(record.headers().toArray());
-            return !"CheckOfferResponseDTO".equals(dtoClassName);
-        });
         return factory;
-    }
-
-    private String getDtoClassName(Header[] headers) {
-        if (headers != null) {
-            for (Header header : headers) {
-                if ("DTOClassName".equals(header.key())) {
-                    return new String(header.value());
-                }
-            }
-        }
-        return null;
     }
 }
 

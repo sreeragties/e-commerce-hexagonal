@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,7 +43,7 @@ public class RuleServiceImpl implements RuleService {
     private String topicName;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void handleAndExecuteRules(OfferEvaluationRequestDTO dto, String key) throws JsonProcessingException {
+    public void handleAndExecuteRules(OfferEvaluationRequestDTO dto, String key, String correlationId) throws JsonProcessingException {
         log.info("Handling ApplyOfferRequestDTO. Key: {}, Message: {}", key, dto);
         var offer = offerMapper.toOffer(dto);
         CustomerSubscription subscription = determineSubscription(offer);
@@ -53,7 +54,7 @@ public class RuleServiceImpl implements RuleService {
                 .offerRate(decision.getOfferRate())
                 .build();
 
-        sendProducerMessage(response.getClass().getSimpleName(), response, dto.getProcessId());
+        sendProducerMessage("order.offer.checked", "v1.0", response, correlationId, response.getProcessId().toString());
     }
     private CustomerSubscription determineSubscription(Offer dto) {
         var subscription = dto.getSubscription();
@@ -102,17 +103,31 @@ public class RuleServiceImpl implements RuleService {
         executeRules(fact, CustomerSubscription.STANDARD);
     }
 
-    private <T> void sendProducerMessage(String className, T message, UUID processId) throws JsonProcessingException {
+    public <T> void sendProducerMessage(String kafkaEventType, String eventVersion, T message, String correlationId, String messageKey) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         String serialisedResponse = objectMapper.writeValueAsString(message);
-        String serialisedProcessId = processId.toString();
 
         List<Header> headers = new ArrayList<>();
-        headers.add(new RecordHeader("DTOClassName", className.getBytes()));
+        headers.add(new RecordHeader("event-type", "order.offer.checked".getBytes()));
+        headers.add(new RecordHeader("event-version", "v1.0".getBytes()));
+        if (correlationId != null) {
+            headers.add(new RecordHeader("correlation-id", correlationId.getBytes(StandardCharsets.UTF_8)));
+        } else {
+            log.warn("Sending Kafka event '{}' without a correlation ID. Consider propagating one.", kafkaEventType);
+        }
+        ProducerRecord<String, String> producerRecord = new ProducerRecord<>(
+                topicName,
+                null,
+                messageKey,
+                serialisedResponse,
+                headers
+        );
 
-        ProducerRecord<String, String> record = new ProducerRecord <>(topicName, null, serialisedProcessId, serialisedResponse, headers);
-        kafkaTemplate.send(record);
+        kafkaTemplate.send(producerRecord);
+
+        log.info("Sent event '{}' (v{}) with correlation ID '{}' to topic '{}' with key '{}'",
+                kafkaEventType, eventVersion, correlationId, topicName, messageKey);
     }
 }

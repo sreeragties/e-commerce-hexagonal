@@ -23,29 +23,8 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
-    @Value("${kafka.group-id.check-offer}")
-    private String checkOfferGroupId;
-
-    @Value("${kafka.group-id.evaluate-offer}")
-    private String evaluateOfferGroupId;
-
-    @Value("${kafka.group-id.apply-offer}")
-    private String applyOfferGroupId;
-
-    @Value("${kafka.group-id.payment-order}")
-    private String paymentOrderGroupId;
-
-    @Value("${kafka.group-id.process-payment}")
-    private String processPaymentGroupId;
-
-    @Value("${kafka.group-id.post-process}")
-    private String postProcessGroupId;
-
-    @Value("${kafka.group-id.ship-order}")
-    private String shipOrderGroupId;
-
-    @Value("${kafka.group-id.deliver-order}")
-    private String deliverOrderGroupId;
+    @Value("${kafka.group-id.order-events}")
+    private String orderEventsGroupId;
 
     private Map<String, Object> commonProps() {
         Map<String, Object> props = new HashMap<>();
@@ -58,112 +37,17 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, String> checkOfferConsumerFactory() {
+    public ConsumerFactory<String, String> orderEventsConsumerFactory() {
         Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, checkOfferGroupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, orderEventsGroupId);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
-    public ConsumerFactory<String, String> applyConsumerFactory() {
-        Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, applyOfferGroupId);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    @Bean
-    public ConsumerFactory<String, String> paymentOrderConsumerFactory() {
-        Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, paymentOrderGroupId);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    @Bean
-    public ConsumerFactory<String, String> processPaymentConsumerFactory() {
-        Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, processPaymentGroupId);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    @Bean
-    public ConsumerFactory<String, String> postProcessPaymentConsumerFactory() {
-        Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, postProcessGroupId);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    @Bean
-    public ConsumerFactory<String, String> shipOrderConsumerFactory() {
-        Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, shipOrderGroupId);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    @Bean
-    public ConsumerFactory<String, String> deliverOrderConsumerFactory() {
-        Map<String, Object> props = commonProps();
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, deliverOrderGroupId);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    private ConcurrentKafkaListenerContainerFactory<String, String> createContainerFactory(
-            ConsumerFactory<String, String> consumerFactory,
-            String expectedDtoClassName) {
-
+    public ConcurrentKafkaListenerContainerFactory<String, String> orderEventsContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory);
-
-        factory.setRecordFilterStrategy(recordItem -> {
-            String dtoClassName = getDtoClassName(recordItem.headers().toArray());
-            return !expectedDtoClassName.equals(dtoClassName);
-        });
+        factory.setConsumerFactory(orderEventsConsumerFactory());
         return factory;
-    }
-
-    private String getDtoClassName(Header[] headers) {
-        if (headers != null) {
-            for (Header header : headers) {
-                if ("DTOClassName".equals(header.key())) {
-                    return new String(header.value());
-                }
-            }
-        }
-        return null;
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> checkOfferContainerFactory() {
-        return createContainerFactory(checkOfferConsumerFactory(), "CreateOrderResponseDTO");
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> applyOfferResponseContainerFactory() {
-        return createContainerFactory(applyConsumerFactory(), "OfferEvaluationResponseDTO");
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> paymentOrderResponseContainerFactory() {
-        return createContainerFactory(paymentOrderConsumerFactory(), "ApplyOfferResponseDTO");
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> processPaymentResponseContainerFactory() {
-        return createContainerFactory(processPaymentConsumerFactory(), "ProcessPaymentResponseDTO");
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> postProcessOrderResponseContainerFactory() {
-        return createContainerFactory(postProcessPaymentConsumerFactory(), "GeneratedPaymentStatusResponseDTO");
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> shipOrderResponseContainerFactory() {
-        return createContainerFactory(shipOrderConsumerFactory(), "PaymentSuccessResponseDTO");
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> deliverOrderResponseContainerFactory() {
-        return createContainerFactory(deliverOrderConsumerFactory(), "StageForDeliverResponseDTO");
     }
 }
 

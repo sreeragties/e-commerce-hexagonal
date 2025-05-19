@@ -13,17 +13,17 @@ public interface OrderService {
 
     Optional<Order> getOrderById(UUID orderId);
 
-    void checkOffer(CheckOfferRequestDTO checkOfferRequestDTO) throws JsonProcessingException;
+    void checkOffer(CheckOfferRequestDTO checkOfferRequestDTO, String correlationIdHeader) throws JsonProcessingException;
 
-    void applyOffer(ApplyOfferRequestDTO applyOfferRequestDTO) throws JsonProcessingException;
+    void applyOffer(ApplyOfferRequestDTO applyOfferRequestDTO, String correlationIdHeader) throws JsonProcessingException;
 
     boolean cancelOffer(UUID orderId);
     boolean placeOrder(UUID orderId);
-    void makePayment(MakePaymentRequestDTO makePaymentRequestDTO) throws JsonProcessingException;
-    void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO) throws JsonProcessingException;
-    void postProcessOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO) throws JsonProcessingException;
-    void shipOrder(ShipOrderRequestDTO shipOrderRequestDTO) throws JsonProcessingException;
-    void deliverOrder(DeliverOrderRequestDTO deliverOrderRequestDTO) throws JsonProcessingException;
+    void makePayment(MakePaymentRequestDTO makePaymentRequestDTO, String correlationIdHeader) throws JsonProcessingException;
+    void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO, String correlationIdHeader) throws JsonProcessingException;
+    void postProcessOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO, String correlationIdHeader) throws JsonProcessingException;
+    void shipOrder(ShipOrderRequestDTO shipOrderRequestDTO, String correlationIdHeader) throws JsonProcessingException;
+    void deliverOrder(DeliverOrderRequestDTO deliverOrderRequestDTO, String correlationIdHeader) throws JsonProcessingException;
     boolean cancelOrder(UUID orderId);
     boolean returnOrder(UUID orderId);
 }
