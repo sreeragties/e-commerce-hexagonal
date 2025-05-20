@@ -11,9 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -25,14 +28,20 @@ public class KafkaMessageListener {
     private final PaymentMapper paymentMapper;
 
     @KafkaListener(topics = "${kafka.topic.name}", groupId = "${kafka.group-id}")
-    public void listen(ConsumerRecord<String, String> record) {
+    public void listen(ConsumerRecord<String, String> consumerRecord,
+                       @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+                       @Header(value = "event-type", required = false) String eventTypeHeader,
+                       @Header(value = "event-version", required = false) String eventVersionHeader,
+                       @Header(value = "correlation-id", required = false) String correlationIdHeader) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-            var requestDto = objectMapper.readValue(record.value(), MakePaymentResponseDTO.class);
+            var requestDto = objectMapper.readValue(consumerRecord.value(), MakePaymentResponseDTO.class);
             ProcessPaymentRequestDTO dto = paymentMapper.toProcessPaymentRequestDTO(requestDto);
-            paymentService.handleAndExecutePayment(dto, record.key());
+            if(Objects.equals(eventTypeHeader, "order.make.payment")) {
+                paymentService.handleAndExecutePayment(dto, consumerRecord.key(), correlationIdHeader);
+            }
         } catch (IOException e) {
             log.error("Error processing CheckOrderResponseDTO message: {}", e.getMessage());
         }

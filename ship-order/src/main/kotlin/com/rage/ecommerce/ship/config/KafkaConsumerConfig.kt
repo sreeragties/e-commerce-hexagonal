@@ -1,8 +1,6 @@
 package com.rage.ecommerce.ship.config
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -37,21 +35,6 @@ class KafkaConsumerConfig {
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
         factory.consumerFactory = consumerFactory()
-        factory.setRecordFilterStrategy { record: ConsumerRecord<String?, String?> ->
-            val dtoClassName = getDtoClassName(record.headers().toArray())
-            "ShipOrderResponseDTO" != dtoClassName
-        }
         return factory
-    }
-
-    private fun getDtoClassName(headers: Array<Header>?): String? {
-        if (headers != null) {
-            for (header in headers) {
-                if ("DTOClassName" == header.key()) {
-                    return String(header.value())
-                }
-            }
-        }
-        return null
     }
 }

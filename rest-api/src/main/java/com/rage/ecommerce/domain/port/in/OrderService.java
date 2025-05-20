@@ -20,7 +20,7 @@ public interface OrderService {
     boolean cancelOffer(UUID orderId);
     boolean placeOrder(UUID orderId);
     void makePayment(MakePaymentRequestDTO makePaymentRequestDTO, String correlationIdHeader) throws JsonProcessingException;
-    void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO, String correlationIdHeader) throws JsonProcessingException;
+    void processPaymentStatus(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO, String correlationIdHeader) throws JsonProcessingException;
     void postProcessOrder(PaymentSuccessRequestDTO paymentSuccessRequestDTO, String correlationIdHeader) throws JsonProcessingException;
     void shipOrder(ShipOrderRequestDTO shipOrderRequestDTO, String correlationIdHeader) throws JsonProcessingException;
     void deliverOrder(DeliverOrderRequestDTO deliverOrderRequestDTO, String correlationIdHeader) throws JsonProcessingException;

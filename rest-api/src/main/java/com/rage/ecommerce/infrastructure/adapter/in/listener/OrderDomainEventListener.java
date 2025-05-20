@@ -53,9 +53,9 @@ public class OrderDomainEventListener {
                     var orderPaidEvent = objectMapper.readValue(consumerRecord.value(), MakePaymentRequestDTO.class);
                     orderService.makePayment(orderPaidEvent, correlationIdHeader);
                     break;
-                case ORDER_MAKE_PAYMENT:
-                    var paymentFailedEvent = objectMapper.readValue(consumerRecord.value(), GeneratedPaymentStatusRequestDTO.class);
-                    orderService.processPayment(paymentFailedEvent, correlationIdHeader);
+                case ORDER_PAYMENT_PROCESSED:
+                    var paymentProcessEvent = objectMapper.readValue(consumerRecord.value(), GeneratedPaymentStatusRequestDTO.class);
+                    orderService.processPaymentStatus(paymentProcessEvent, correlationIdHeader);
                     break;
                 case ORDER_PAYMENT_SUCCESSFUL:
                     var orderShippedEvent = objectMapper.readValue(consumerRecord.value(), PaymentSuccessRequestDTO.class);

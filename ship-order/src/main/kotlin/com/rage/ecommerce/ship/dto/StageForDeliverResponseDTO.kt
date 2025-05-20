@@ -6,5 +6,4 @@ import java.util.*
 class StageForDeliverResponseDTO {
 
     var processId: UUID? = null
-    var orderState: OrderState? = null
 }

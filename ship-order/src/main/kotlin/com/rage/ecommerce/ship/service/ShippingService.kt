@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 @Service
@@ -29,27 +30,47 @@ class ShippingService(
     }
 
     @Throws(JsonProcessingException::class)
-    fun handleAndExecutePayment(dto: StageForDeliverRequestDTO, key: String?) {
-        logger.info("Handling ApplyOfferRequestDTO. Key: {}, Message: {}", key, dto)
-        val response: StageForDeliverResponseDTO? = shipMapper?.toStageForDeliverResponseDTO(dto)
+    fun handleAndExecutePayment(dto: StageForDeliverRequestDTO, correlationId: String?) {
+        logger.info("Handling ApplyOfferRequestDTO. Correlation ID : {}, Message: {}", correlationId, dto)
+        val response: StageForDeliverResponseDTO = shipMapper.toStageForDeliverResponseDTO(dto)
 
-        if (response != null) {
-            sendProducerMessage(response.javaClass.getSimpleName(), response, response.processId)
-        }
+        val key = response?.processId?.toString();
+
+        sendProducerMessage("order.shipped", "v1.0", response, correlationId, key.toString())
     }
 
     @Throws(JsonProcessingException::class)
-    private fun <T> sendProducerMessage(className: String, message: T, processId: UUID?) {
+    fun <T> sendProducerMessage(
+        kafkaEventType: String,
+        eventVersion: String?,
+        message: T,
+        correlationId: String?,
+        messageKey: String
+    ) {
         val objectMapper = ObjectMapper()
         objectMapper.registerModule(JavaTimeModule())
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         val serialisedResponse = objectMapper.writeValueAsString(message)
-        val serialisedProcessId = processId.toString()
 
         val headers: MutableList<Header> = ArrayList()
-        headers.add(RecordHeader("DTOClassName", className.toByteArray()))
+        headers.add(RecordHeader("event-type", kafkaEventType.toByteArray()))
+        headers.add(RecordHeader("event-version", "v1.0".toByteArray()))
+        if (correlationId != null) {
+            headers.add(RecordHeader("correlation-id", correlationId.toByteArray(StandardCharsets.UTF_8)))
+        } else {
+            logger.warn(
+                "Sending Kafka event '{}' without a correlation ID. Consider propagating one.",
+                kafkaEventType
+            )
+        }
+        val producerRecord = ProducerRecord(
+            topicName,
+            null,
+            messageKey,
+            serialisedResponse,
+            headers
+        )
 
-        val record = ProducerRecord(topicName, null, serialisedProcessId, serialisedResponse, headers)
-        kafkaTemplate?.send(record)
+        kafkaTemplate.send(producerRecord)
     }
 }

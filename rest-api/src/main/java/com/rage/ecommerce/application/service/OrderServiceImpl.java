@@ -185,7 +185,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void processPayment(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO, String correlationIdHeader) throws JsonProcessingException {
+    public void processPaymentStatus(GeneratedPaymentStatusRequestDTO generatedPaymentStatusRequestDTO, String correlationIdHeader) throws JsonProcessingException {
         var orderId = generatedPaymentStatusRequestDTO.getProcessId();
         var existingOrderEntry = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException(ORDER_NOT_FOUND_LITERAL + orderId));
@@ -226,7 +226,7 @@ public class OrderServiceImpl implements OrderService {
         sendEvent(stateMachine, OrderEvent.SHIP_ORDER);
         var response = saveState(stateMachine, existingOrderEntry);
         var dtoResponse = orderMapper.toShipOrderResponseDTO(response);
-        sendProducerMessage(ORDER_SHIPPED, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
+        sendProducerMessage(ORDER_STAGED_FOR_SHIPPING, "v1.0", dtoResponse, correlationIdHeader, response.getProcessId().toString());
         webSocketMessagingTemplate.convertAndSend("/topic/orders/status/"
                 + response.getProcessId(), response.getOrderState());
     }
