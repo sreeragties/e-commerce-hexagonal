@@ -50,6 +50,21 @@ services:
       - kafka
       - zookeeper
 
+  ship:
+    build:
+      context: ../..
+      dockerfile: ./ship-order/Dockerfile
+    ports:
+      - "8083:8080"
+    container_name: ship-order-container
+    restart: unless-stopped
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+    depends_on:
+      - kafka
+      - zookeeper
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     environment:

@@ -1,5 +1,6 @@
 package com.rage.ecommerce.payment.infrastructure.adapter.in;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -37,6 +38,7 @@ public class KafkaMessageListener {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
             var requestDto = objectMapper.readValue(consumerRecord.value(), MakePaymentResponseDTO.class);
             ProcessPaymentRequestDTO dto = paymentMapper.toProcessPaymentRequestDTO(requestDto);
             if(Objects.equals(eventTypeHeader, "order.make.payment")) {

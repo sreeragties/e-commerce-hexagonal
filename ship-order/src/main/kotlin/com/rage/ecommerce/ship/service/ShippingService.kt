@@ -34,7 +34,7 @@ class ShippingService(
         logger.info("Handling ApplyOfferRequestDTO. Correlation ID : {}, Message: {}", correlationId, dto)
         val response: StageForDeliverResponseDTO = shipMapper.toStageForDeliverResponseDTO(dto)
 
-        val key = response?.processId?.toString();
+        val key = response.processId?.toString();
 
         sendProducerMessage("order.shipped", "v1.0", response, correlationId, key.toString())
     }
@@ -70,6 +70,8 @@ class ShippingService(
             serialisedResponse,
             headers
         )
+
+        logger.info("producer record: {} ", producerRecord);
 
         kafkaTemplate.send(producerRecord)
     }

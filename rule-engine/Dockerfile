@@ -7,6 +7,7 @@ COPY pom.xml /app/
 COPY rule-engine /app/rule-engine/
 RUN sed -i '/<module>rest-api<\/module>/d' /app/pom.xml
 RUN sed -i '/<module>ecommerce-payment<\/module>/d' /app/pom.xml
+RUN sed -i '/<module>ship-order<\/module>/d' /app/pom.xml
 
 RUN mvn clean package -pl rule-engine -am -DskipTests
 
